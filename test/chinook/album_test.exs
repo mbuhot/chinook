@@ -33,7 +33,6 @@ defmodule Chinook.AlbumTest do
       assert length(a2.tracks) == 3
     end
 
-    @tag :focus
     test "Preload tracks with lateral join" do
       query =
         from album in Album,
@@ -160,6 +159,30 @@ defmodule Chinook.AlbumTest do
       [a1, a2 | _rest] = Repo.all(query)
       assert length(a1.tracks) == 3
       assert length(a2.tracks) == 3
+    end
+
+    @tag :focus
+    test "Preload tracks with lateral join query" do
+      album_ids = @album_ids
+
+      tracks_query =
+        from track in Track,
+          join: album in assoc(track, :album), as: :album,
+          inner_lateral_join: top_track in subquery(
+            from Track,
+            where: [album_id: parent_as(:album).album_id],
+            order_by: [desc: :milliseconds],
+            limit: 3,
+            select: [:track_id]
+          ), on: top_track.track_id == track.track_id
+
+      query =
+        from album in Album,
+          where: album.album_id in ^album_ids,
+          preload: [tracks: ^tracks_query],
+          select: album
+
+      length(Repo.all(query)) |> IO.inspect
     end
 
     test "Preload tracks with generic helper" do
@@ -297,7 +320,6 @@ defmodule Chinook.AlbumTest do
       end
     end
 
-    @tag :focus
     test "Preload tracks with lateral join raw SQL and function" do
       query =
         from album in Album,

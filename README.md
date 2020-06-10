@@ -175,24 +175,26 @@ query =
     join: album in assoc(artist, :albums), as: :album,
     join: track in assoc(album, :tracks),
     join: top_artist in subquery(
-      from a in Artist,
-        order_by: a.artist_id,
+      from Artist,
+        order_by: :artist_id,
         limit: 10,
-        select: %{artist_id: a.artist_id}
+        select: [:artist_id]
     ),
     on: artist.artist_id == top_artist.artist_id,
     inner_lateral_join: top_album in subquery(
-      from album in Album,
-      where: album.artist_id == parent_as(:artist).artist_id,
+      from Album,
+      where: [artist_id: parent_as(:artist).artist_id],
       limit: 1,
-      order_by: :title
+      order_by: :title,
+      select: [:album_id]
     ),
     on: album.album_id == top_album.album_id,
     inner_lateral_join: top_track in subquery(
-      from track in Track,
-      where: track.album_id == parent_as(:album).album_id,
+      from Track,
+      where: [album_id: parent_as(:album).album_id],
       limit: 3,
-      order_by: :name
+      order_by: :name,
+      select: [:track_id]
     ),
     on: track.track_id == top_track.track_id,
     order_by: [artist.artist_id, album.album_id, track.track_id],
@@ -223,24 +225,24 @@ query =
     join: track in assoc(album, :tracks),
 
     join: top_artist in subquery(
-      from a in Artist,
-        order_by: a.artist_id,
+      from Artist,
+        order_by: [:artist_id],
         limit: 10,
-        select: a.artist_id
+        select: [:artist_id]
     ),
     on: artist.artist_id == top_artist.artist_id,
 
     join: top_album in subquery(
       from a in Album,
-      windows: [w: [partition_by: :artist_id, order_by: :title]],
-      select: %{album_id: a.album_id, rank: row_number() |> over(:w)}
+      windows: [artist_partition: [partition_by: :artist_id, order_by: :title]],
+      select: %{album_id: a.album_id, rank: row_number() |> over(:artist_partition)}
     ),
     on: (album.album_id == top_album.album_id and top_album.rank == 1),
 
     join: top_track in subquery(
       from t in Track,
-      windows: [w: [partition_by: :album_id, order_by: :name]],
-      select: %{track_id: t.track_id, rank: row_number() |> over(:w)}
+      windows: [album_partition: [partition_by: :album_id, order_by: :name]],
+      select: %{track_id: t.track_id, rank: row_number() |> over(:album_partition)}
     ),
     on: (track.track_id == top_track.track_id and top_track.rank <= 3),
 
@@ -258,7 +260,7 @@ data = Repo.all(query)
 Performance isn't as good as the lateral join solution, but maybe we can use windows for the next solution...
 
 
-## Solution 4 - Preload Queries
+## Solution 4: Preload Queries with Window
 
 Sometimes joins are not ideal for preloads, since the rows returned from the DB now contain columns from all the tables.
 We can pull out the preload queries and let ecto fetch the associated data in a separate call.
@@ -268,8 +270,8 @@ album_query =
   from album in Album,
     join: top_album in subquery(
       from a in Album,
-      windows: [w: [partition_by: :artist_id, order_by: :title]],
-      select: %{album_id: a.album_id, rank: row_number() |> over(:w)}
+      windows: [artist_partition: [partition_by: :artist_id, order_by: :title]],
+      select: %{album_id: a.album_id, rank: row_number() |> over(:artist_partition)}
     ), on: (album.album_id == top_album.album_id and top_album.rank == 1),
     order_by: [:title],
     select: album
@@ -278,8 +280,8 @@ track_query =
   from track in Track,
     join: top_track in subquery(
       from t in Track,
-      windows: [w: [partition_by: :album_id, order_by: :name]],
-      select: %{track_id: t.track_id, rank: row_number() |> over(:w)}
+      windows: [album_partition: [partition_by: :album_id, order_by: :name]],
+      select: %{track_id: t.track_id, rank: row_number() |> over(:album_partition)}
     ), on: (track.track_id == top_track.track_id and top_track.rank <= 3),
     order_by: [:name],
     select: track
@@ -340,12 +342,65 @@ How does it perform?
 [debug] QUERY OK source="Track" db=7.3ms idle=1478.2ms
 ```
 
-Not great, but might be a good option if you need the flexibility to dynamically customize the preload query.
+Not as good as the joins, but it's nice to have a generic helper for quick queries.
 
 
-## Solution 5 - Preload Functions
+## Solution 5: Preload Query with lateral join
 
-While preload queries can work well, there's a slightly more efficient approach to take using lateral joins and CTEs:
+We can also use lateral joins again with preload queries.
+The trick here is to start the query with the child schema first,
+then join to the parent schema, then laterally to get the top N row ids.
+
+
+```elixir
+album_query =
+  from album in Album,
+    join: artist in assoc(album, :artist), as: :artist,
+    inner_lateral_join: top_album in subquery(
+      from Album,
+      where: [artist_id: parent_as(:artist).artist_id],
+      order_by: :title,
+      limit: 1,
+      select: [:album_id]
+    ), on: album.album_id == top_album.album_id
+
+track_query =
+  from track in Track,
+    join: album in assoc(track, :album), as: :album,
+    inner_lateral_join: top_track in subquery(
+      from Track,
+      where: [album_id: parent_as(:album).album_id],
+      order_by: :name,
+      limit: 3,
+      select: [:track_id]
+    ), on: (track.track_id == top_track.track_id)
+
+query =
+  from artist in Artist,
+    order_by: artist.artist_id,
+    limit: 10,
+    select: artist,
+    preload: [albums: ^album_query],
+    preload: [albums: [tracks: ^track_query]]
+
+data = Repo.all(query)
+```
+
+
+How does it perform?
+
+```
+[debug] QUERY OK source="Artist" db=4.2ms idle=1482.5ms
+[debug] QUERY OK source="Album" db=2.1ms idle=1073.3ms
+[debug] QUERY OK source="Track" db=3.1ms idle=1071.6ms
+```
+
+Slightly better than the window function.
+
+
+## Solution 6: Preload Functions
+
+While preload queries can work well, there's another approach to take using lateral joins and CTEs:
 
 ```elixir
 defmodule Preloads do
