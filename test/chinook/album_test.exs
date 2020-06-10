@@ -3,9 +3,9 @@ defmodule Chinook.AlbumTest do
   import Ecto.Query
 
   alias Chinook.Repo
+  alias Chinook.Artist
   alias Chinook.Album
   alias Chinook.Track
-
   @album_ids [50, 60, 70, 80, 90, 100, 110, 120, 130, 141, 147]
 
   describe "Preload with joins" do
@@ -120,7 +120,85 @@ defmodule Chinook.AlbumTest do
     query |> preload([{^association, ^preloader}])
   end
 
+  defp association_details(parent_schema, association) do
+    assoc_info = parent_schema.__schema__(:association, association)
+    child_schema = assoc_info.queryable
+    [parent_primary_key] = parent_schema.__schema__(:primary_key)
+    [child_primary_key] = child_schema.__schema__(:primary_key)
+
+    %{
+      parent_schema: parent_schema,
+      parent_primary_key: parent_primary_key,
+      child_schema: child_schema,
+      child_primary_key: child_primary_key,
+      related_key: assoc_info.related_key
+    }
+  end
+
+  def top_n(parent_schema, association, opts) do
+    {where, opts} = Keyword.pop(opts, :where, [])
+    {order_by, opts} = Keyword.pop!(opts, :order_by)
+    {limit, []} = Keyword.pop!(opts, :limit)
+
+    %{
+      parent_primary_key: parent_primary_key,
+      child_schema: child_schema,
+      child_primary_key: child_primary_key,
+      related_key: related_key
+    } = association_details(parent_schema, association)
+
+    from child in child_schema,
+      join: parent in ^parent_schema, as: :parent,
+      on: field(child, ^related_key) == field(parent, ^parent_primary_key),
+      inner_lateral_join:
+        top_children in subquery(
+          from top_children in child_schema,
+            where: field(top_children, ^related_key) == field(parent_as(:parent), ^parent_primary_key),
+            where: ^where,
+            order_by: ^order_by,
+            limit: ^limit,
+            select: ^[child_primary_key]
+        ),
+      on: field(top_children, ^child_primary_key) == field(child, ^child_primary_key),
+      select: child
+  end
+
   describe "Preload with Query" do
+    @tag :focus
+    test "Preload tracks with generic inner_lateral_join" do
+      query =
+        from artist in Artist,
+        order_by: artist.artist_id,
+        limit: 10,
+        select: artist,
+        preload: [
+          albums:
+            ^top_n(Artist, :albums,
+              where: dynamic([a], like(a.title, "%Rock%")),
+              order_by: :title,
+              limit: 1
+            )
+        ],
+        preload: [
+          albums: [
+            tracks:
+              ^top_n(Album, :tracks,
+                where: dynamic([t], t.name |> ilike("%E%")),
+                order_by: :name,
+                limit: 3
+              )
+          ]
+        ]
+
+      IO.inspect(query)
+
+      [a1, a2 | _rest] = Repo.all(query)
+      album1 = hd(a1.albums) |> IO.inspect()
+      assert length(album1.tracks) == 3
+      # assert length(a1.tracks) == 3
+      # assert length(a2.tracks) == 3
+    end
+
     test "Preload tracks with query using windows" do
       tracks_query =
         from track in Track,
@@ -161,20 +239,22 @@ defmodule Chinook.AlbumTest do
       assert length(a2.tracks) == 3
     end
 
-    @tag :focus
     test "Preload tracks with lateral join query" do
       album_ids = @album_ids
 
       tracks_query =
         from track in Track,
-          join: album in assoc(track, :album), as: :album,
-          inner_lateral_join: top_track in subquery(
-            from Track,
-            where: [album_id: parent_as(:album).album_id],
-            order_by: [desc: :milliseconds],
-            limit: 3,
-            select: [:track_id]
-          ), on: top_track.track_id == track.track_id
+          join: album in assoc(track, :album),
+          as: :album,
+          inner_lateral_join:
+            top_track in subquery(
+              from Track,
+                where: [album_id: parent_as(:album).album_id],
+                order_by: [desc: :milliseconds],
+                limit: 3,
+                select: [:track_id]
+            ),
+          on: top_track.track_id == track.track_id
 
       query =
         from album in Album,
@@ -182,7 +262,7 @@ defmodule Chinook.AlbumTest do
           preload: [tracks: ^tracks_query],
           select: album
 
-      length(Repo.all(query)) |> IO.inspect
+      length(Repo.all(query)) |> IO.inspect()
     end
 
     test "Preload tracks with generic helper" do
