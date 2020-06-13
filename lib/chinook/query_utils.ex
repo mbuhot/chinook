@@ -42,7 +42,7 @@ defmodule Chinook.QueryUtils do
   @spec cursor_assoc(
           schema :: module,
           assoc :: atom,
-          cursor_fied :: atom,
+          cursor_field :: atom,
           args :: pagination_args
         ) :: Ecto.Query.t()
   def cursor_assoc(schema, assoc, cursor_field, args) do
