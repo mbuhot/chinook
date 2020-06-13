@@ -94,6 +94,7 @@ defmodule Chinook.AlbumTest do
     {repo, []} = Keyword.pop(opts, :repo, nil)
 
     %{from: %{source: {_, source_schema}}} = query
+
     %{queryable: related_queryable, related_key: related_key} =
       source_schema.__schema__(:association, association)
 
@@ -135,15 +136,19 @@ defmodule Chinook.AlbumTest do
     [assoc_primary_key] = assoc_schema.__schema__(:primary_key)
     related_key = assoc_info.related_key
 
-    from associated in assoc_schema, as: :associated,
-      inner_lateral_join: top_associated in subquery(
-        from top_associated in assoc_schema,
-          where: field(top_associated, ^related_key) == field(parent_as(:associated), ^related_key),
-          where: ^where,
-          order_by: ^order_by,
-          limit: ^limit,
-          select: ^[assoc_primary_key]
-      ), on: field(top_associated, ^assoc_primary_key) == field(associated, ^assoc_primary_key),
+    from associated in assoc_schema,
+      as: :associated,
+      inner_lateral_join:
+        top_associated in subquery(
+          from top_associated in assoc_schema,
+            where:
+              field(top_associated, ^related_key) == field(parent_as(:associated), ^related_key),
+            where: ^where,
+            order_by: ^order_by,
+            limit: ^limit,
+            select: ^[assoc_primary_key]
+        ),
+      on: field(top_associated, ^assoc_primary_key) == field(associated, ^assoc_primary_key),
       select: associated
   end
 
@@ -151,25 +156,25 @@ defmodule Chinook.AlbumTest do
     test "Preload tracks with generic inner_lateral_join" do
       query =
         from artist in Artist,
-        order_by: artist.artist_id,
-        limit: 10,
-        select: artist,
-        preload: [
-          albums:
-            ^top_n(Artist, :albums,
-              order_by: :title,
-              limit: 1
-            )
-        ],
-        preload: [
-          albums: [
-            tracks:
-              ^top_n(Album, :tracks,
-                order_by: :name,
-                limit: 3
+          order_by: artist.artist_id,
+          limit: 10,
+          select: artist,
+          preload: [
+            albums:
+              ^top_n(Artist, :albums,
+                order_by: :title,
+                limit: 1
               )
+          ],
+          preload: [
+            albums: [
+              tracks:
+                ^top_n(Album, :tracks,
+                  order_by: :name,
+                  limit: 3
+                )
+            ]
           ]
-        ]
 
       [a1, a2 | _rest] = Repo.all(query)
       album1 = hd(a1.albums)
@@ -203,7 +208,6 @@ defmodule Chinook.AlbumTest do
       assert length(a2.tracks) == 3
     end
 
-    @tag :focus
     test "Preload tracks with generic query using windows" do
       tracks_query =
         partition_limit(Track, partition_by: :album_id, order_by: [desc: :milliseconds], limit: 3)
@@ -214,7 +218,7 @@ defmodule Chinook.AlbumTest do
           preload: [tracks: ^tracks_query],
           select: album
 
-      [a1, a2 | _rest] = Repo.all(query) |> IO.inspect
+      [a1, a2 | _rest] = Repo.all(query)
       assert length(a1.tracks) == 3
       assert length(a2.tracks) == 3
     end
@@ -242,7 +246,7 @@ defmodule Chinook.AlbumTest do
           preload: [tracks: ^tracks_query],
           select: album
 
-      length(Repo.all(query)) |> IO.inspect()
+      length(Repo.all(query))
     end
 
     test "Preload tracks with generic helper" do

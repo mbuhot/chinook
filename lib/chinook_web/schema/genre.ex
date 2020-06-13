@@ -1,6 +1,7 @@
 defmodule ChinookWeb.Schema.Genre do
   use Absinthe.Schema.Notation
   alias ChinookWeb.Schema.Track
+  alias ChinookWeb.SchemaUtil
 
   object :genre do
     field(:id, :id)
@@ -13,11 +14,7 @@ defmodule ChinookWeb.Schema.Genre do
       arg(:after, :integer)
 
       resolve(fn genre, args, _resolution ->
-        Absinthe.Resolution.Helpers.batch(
-          {Track.Resolvers, :tracks_for_genre_ids, args},
-          genre.id,
-          &{:ok, Map.get(&1, genre.id)}
-        )
+        SchemaUtil.batch(Track.Resolvers, :tracks_for_genre_ids, args, genre.id)
       end)
     end
   end

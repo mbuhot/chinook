@@ -1,7 +1,7 @@
 defmodule ChinookWeb.Schema.Artist do
   use Absinthe.Schema.Notation
-  alias ChinookWeb.Resolvers
   alias ChinookWeb.Schema.Album
+  alias ChinookWeb.SchemaUtil
 
   object :artist do
     field(:id, :id)
@@ -14,11 +14,7 @@ defmodule ChinookWeb.Schema.Artist do
       arg(:before, :integer)
 
       resolve(fn artist, args, _resolution ->
-        batch(
-          {Album.Resolvers, :albums_for_artist_ids, args},
-          artist.id,
-          &{:ok, Map.get(&1, artist.id)}
-        )
+        SchemaUtil.batch(Album.Resolvers, :albums_for_artist_ids, args, artist.id)
       end)
     end
   end
@@ -40,7 +36,7 @@ defmodule ChinookWeb.Schema.Artist do
 
     def artists_by_ids(_args, artist_ids) do
       Artist
-      |> where([a], a.artist_id in ^artist_ids)
+      |> where([a], a.artist_id in ^Enum.uniq(artist_ids))
       |> select_fields()
       |> Repo.all()
       |> Map.new(&{&1.id, &1})
