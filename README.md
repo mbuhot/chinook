@@ -189,6 +189,7 @@ query =
       select: [:album_id]
     ),
     on: album.album_id == top_album.album_id,
+
     inner_lateral_join: top_track in subquery(
       from Track,
       where: [album_id: parent_as(:album).album_id],
@@ -197,6 +198,7 @@ query =
       select: [:track_id]
     ),
     on: track.track_id == top_track.track_id,
+
     order_by: [artist.artist_id, album.album_id, track.track_id],
     select: artist,
     preload: [albums: {album, tracks: track}]
@@ -290,7 +292,6 @@ query =
   from artist in Artist,
     order_by: artist.artist_id,
     limit: 10,
-    select: artist,
     preload: [albums: ^album_query],
     preload: [albums: [tracks: ^track_query]]
 
@@ -354,22 +355,20 @@ then join to the parent schema, then laterally to get the top N row ids.
 
 ```elixir
 album_query =
-  from album in Album,
-    join: artist in assoc(album, :artist), as: :artist,
+  from album in Album, as: :album,
     inner_lateral_join: top_album in subquery(
       from Album,
-      where: [artist_id: parent_as(:artist).artist_id],
+      where: [artist_id: parent_as(:album).artist_id],
       order_by: :title,
       limit: 1,
       select: [:album_id]
     ), on: album.album_id == top_album.album_id
 
 track_query =
-  from track in Track,
-    join: album in assoc(track, :album), as: :album,
+  from track in Track, as: :track,
     inner_lateral_join: top_track in subquery(
       from Track,
-      where: [album_id: parent_as(:album).album_id],
+      where: [album_id: parent_as(:track).album_id],
       order_by: :name,
       limit: 3,
       select: [:track_id]
@@ -427,24 +426,24 @@ defmodule Preloads do
     end
   end
 
-  def tracks_for_album(order_by: order_by, limit: limit) do
+  def longest_tracks_per_album(limit: limit) do
     fn album_ids ->
-      cte_query =
-        "album"
-        |> with_cte("album", as: fragment("select unnest(? :: int[]) as album_id", ^album_ids))
-
-      query =
-        from album in cte_query, as: :album,
-          inner_lateral_join: track in subquery(
-            from t in Track,
-              where: t.album_id == parent_as(:album).album_id,
-              order_by: ^order_by,
-              limit: ^limit,
-              select: t
-            ),
-          select: track
-
-      Repo.all(query)
+      Repo.query!(
+        """
+        SELECT track.*
+        FROM unnest($1::int[]) as album(album_id)
+        LEFT JOIN LATERAL (
+          SELECT *
+          FROM "Track"
+          WHERE "AlbumId" = album.album_id
+          ORDER BY "Name" DESC
+          LIMIT $2) track ON true
+        """,
+        [album_ids, limit]
+      )
+      |> case do
+        %{rows: rows, columns: cols} -> Enum.map(rows, &Repo.load(Track, {cols, &1}))
+      end
     end
   end
 end
@@ -458,6 +457,19 @@ query =
     preload: [albums: [tracks: ^Preloads.tracks_for_album(order_by: :name, limit: 3)]]
 
 Repo.all(query)
+
+
+cte_query =
+  from a in Artist,
+  where: a.artist_id < 10,
+  select: a
+
+query =
+  Album
+  |> with_cte("artist", as: ^cte_query)
+  |> join(:inner, [album], a in "artist", on: album.artist_id == a.artist_id)
+  |> select([album, artist], %{title: album.title, name: artist.name})
+
 ```
 
 ```
@@ -469,7 +481,7 @@ Each query runs very fast, and altogether under 10 ms.
 
 ## Conclusion
 
-While the Ecto docs don't tell us exactly how to solve the preload-limit problem, there are several approaches within the Ecto DSL.
+While the Ecto docs don't tell us exactly how to solve the preload-limit problem*, there are several approaches within the Ecto DSL.
 For good performance, using lateral joins with named bindings is the way to go.
 If joins are problematic, preload functions using CTEs and lateral joins also gives good performance.
 If you need a stand-alone ranking query, then window functions work well, but probably shouldn't be the first option.

@@ -65,52 +65,57 @@ defmodule Chinook.AlbumTest do
     Enum.reduce(opts, Map.new(default_opts), fn {k, v}, acc -> %{acc | k => v} end)
   end
 
-  def partition_limit(queryable, opts) when is_atom(queryable),
-    do: partition_limit(from(queryable), opts)
-
   def partition_limit(queryable, opts) do
-    opts = opts |> default_opts(partition_by: nil, order_by: nil, limit: nil)
-    %{from: %{source: {_, schema}}} = queryable
+    {partition_by, opts} = Keyword.pop!(opts, :partition_by)
+    {order_by, opts} = Keyword.pop!(opts, :order_by)
+    {limit, opts} = Keyword.pop!(opts, :limit)
+    {where, []} = Keyword.pop(opts, :where, [])
+
+    %{from: %{source: {_, schema}}} = from(queryable)
     [primary_key] = schema.__schema__(:primary_key)
 
     ranking_query =
       from r in queryable,
-        select: %{id: field(r, ^primary_key), rank: row_number() |> over(:w)},
-        windows: [w: [partition_by: ^opts.partition_by, order_by: ^opts.order_by]]
+        where: ^where,
+        select: map(r, ^[primary_key]),
+        select_merge: %{rank: row_number() |> over(:w)},
+        windows: [w: [partition_by: ^partition_by, order_by: ^order_by]]
 
     from row in schema,
       join: top_rows in subquery(ranking_query),
-      on: field(row, ^primary_key) == top_rows.id,
-      where: top_rows.rank <= ^opts.limit,
+      on: field(row, ^primary_key) == field(top_rows, ^primary_key),
+      where: top_rows.rank <= ^limit,
       select: row
   end
 
   def preload_limit(query, association, opts) do
-    opts = opts |> default_opts(order_by: nil, limit: nil, repo: nil)
-    %{from: %{source: {_, source_schema}}} = query
+    {order_by, opts} = Keyword.pop!(opts, :order_by)
+    {limit, opts} = Keyword.pop!(opts, :limit)
+    {repo, []} = Keyword.pop(opts, :repo, nil)
 
+    %{from: %{source: {_, source_schema}}} = query
     %{queryable: related_queryable, related_key: related_key} =
       source_schema.__schema__(:association, association)
 
     preloader =
-      case opts.repo do
+      case repo do
         nil ->
           related_queryable
           |> partition_limit(
             partition_by: related_key,
-            order_by: opts.order_by,
-            limit: opts.limit
+            order_by: order_by,
+            limit: limit
           )
 
         repo ->
           fn ids ->
             preload_query =
               related_queryable
-              |> where([x], field(x, ^related_key) in ^ids)
               |> partition_limit(
+                where: dynamic([x], field(x, ^related_key) in ^ids),
                 partition_by: related_key,
-                order_by: opts.order_by,
-                limit: opts.limit
+                order_by: order_by,
+                limit: limit
               )
 
             repo.all(preload_query)
@@ -120,51 +125,29 @@ defmodule Chinook.AlbumTest do
     query |> preload([{^association, ^preloader}])
   end
 
-  defp association_details(parent_schema, association) do
-    assoc_info = parent_schema.__schema__(:association, association)
-    child_schema = assoc_info.queryable
-    [parent_primary_key] = parent_schema.__schema__(:primary_key)
-    [child_primary_key] = child_schema.__schema__(:primary_key)
-
-    %{
-      parent_schema: parent_schema,
-      parent_primary_key: parent_primary_key,
-      child_schema: child_schema,
-      child_primary_key: child_primary_key,
-      related_key: assoc_info.related_key
-    }
-  end
-
-  def top_n(parent_schema, association, opts) do
+  def top_n(schema, association, opts) do
     {where, opts} = Keyword.pop(opts, :where, [])
     {order_by, opts} = Keyword.pop!(opts, :order_by)
     {limit, []} = Keyword.pop!(opts, :limit)
 
-    %{
-      parent_primary_key: parent_primary_key,
-      child_schema: child_schema,
-      child_primary_key: child_primary_key,
-      related_key: related_key
-    } = association_details(parent_schema, association)
+    assoc_info = schema.__schema__(:association, association)
+    assoc_schema = assoc_info.queryable
+    [assoc_primary_key] = assoc_schema.__schema__(:primary_key)
+    related_key = assoc_info.related_key
 
-    from child in child_schema,
-      join: parent in ^parent_schema, as: :parent,
-      on: field(child, ^related_key) == field(parent, ^parent_primary_key),
-      inner_lateral_join:
-        top_children in subquery(
-          from top_children in child_schema,
-            where: field(top_children, ^related_key) == field(parent_as(:parent), ^parent_primary_key),
-            where: ^where,
-            order_by: ^order_by,
-            limit: ^limit,
-            select: ^[child_primary_key]
-        ),
-      on: field(top_children, ^child_primary_key) == field(child, ^child_primary_key),
-      select: child
+    from associated in assoc_schema, as: :associated,
+      inner_lateral_join: top_associated in subquery(
+        from top_associated in assoc_schema,
+          where: field(top_associated, ^related_key) == field(parent_as(:associated), ^related_key),
+          where: ^where,
+          order_by: ^order_by,
+          limit: ^limit,
+          select: ^[assoc_primary_key]
+      ), on: field(top_associated, ^assoc_primary_key) == field(associated, ^assoc_primary_key),
+      select: associated
   end
 
   describe "Preload with Query" do
-    @tag :focus
     test "Preload tracks with generic inner_lateral_join" do
       query =
         from artist in Artist,
@@ -174,7 +157,6 @@ defmodule Chinook.AlbumTest do
         preload: [
           albums:
             ^top_n(Artist, :albums,
-              where: dynamic([a], like(a.title, "%Rock%")),
               order_by: :title,
               limit: 1
             )
@@ -183,17 +165,14 @@ defmodule Chinook.AlbumTest do
           albums: [
             tracks:
               ^top_n(Album, :tracks,
-                where: dynamic([t], t.name |> ilike("%E%")),
                 order_by: :name,
                 limit: 3
               )
           ]
         ]
 
-      IO.inspect(query)
-
       [a1, a2 | _rest] = Repo.all(query)
-      album1 = hd(a1.albums) |> IO.inspect()
+      album1 = hd(a1.albums)
       assert length(album1.tracks) == 3
       # assert length(a1.tracks) == 3
       # assert length(a2.tracks) == 3
@@ -224,6 +203,7 @@ defmodule Chinook.AlbumTest do
       assert length(a2.tracks) == 3
     end
 
+    @tag :focus
     test "Preload tracks with generic query using windows" do
       tracks_query =
         partition_limit(Track, partition_by: :album_id, order_by: [desc: :milliseconds], limit: 3)
@@ -234,7 +214,7 @@ defmodule Chinook.AlbumTest do
           preload: [tracks: ^tracks_query],
           select: album
 
-      [a1, a2 | _rest] = Repo.all(query)
+      [a1, a2 | _rest] = Repo.all(query) |> IO.inspect
       assert length(a1.tracks) == 3
       assert length(a2.tracks) == 3
     end
@@ -389,7 +369,7 @@ defmodule Chinook.AlbumTest do
             SELECT *
             FROM "Track"
             WHERE "AlbumId" = album.album_id
-            ORDER BY "Milliseconds" DESC
+            ORDER BY "Name" DESC
             LIMIT $2) track ON true
           """,
           [album_ids, limit]

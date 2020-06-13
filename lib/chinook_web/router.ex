@@ -20,10 +20,11 @@ defmodule ChinookWeb.Router do
     live "/", PageLive, :index
   end
 
-  # Other scopes may use custom stacks.
-  # scope "/api", ChinookWeb do
-  #   pipe_through :api
-  # end
+  scope "/api" do
+    pipe_through :api
+    forward "/graphiql", Absinthe.Plug.GraphiQL, schema: ChinookWeb.Schema
+    forward "/", Absinthe.Plug, schema: ChinookWeb.Schema
+  end
 
   # Enables LiveDashboard only for development
   #
