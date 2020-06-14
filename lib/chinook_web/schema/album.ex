@@ -12,10 +12,10 @@ defmodule ChinookWeb.Schema.Album do
     field :title, non_null(:string)
 
     connection field :tracks, node_type: :track do
-      resolve fn
-        pagination_args, %{source: album} ->
-          pagination_args = pagination_args |> SchemaUtil.decode_cursor(:track_id)
-          SchemaUtil.connection_batch(Track.Resolvers, :tracks_for_album_ids, pagination_args, album.album_id)
+      resolve fn pagination_args, %{source: album} ->
+        pagination_args
+        |> SchemaUtil.decode_cursor(:track_id)
+        |> SchemaUtil.connection_batch(Track.Resolvers, :tracks_for_album_ids, album.album_id)
       end
     end
 

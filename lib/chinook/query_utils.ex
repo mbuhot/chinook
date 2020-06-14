@@ -60,22 +60,23 @@ defmodule Chinook.QueryUtils do
   end
 
   @spec cursor_params(args :: pagination_args) ::
-    {order_by :: any, limit :: integer, where :: [] | Ecto.Query.dynamic()}
-  defp cursor_params(%{cursor_field: cursor_field, last: limit, before: cutoff}) do
-    where = dynamic([a], field(a, ^cursor_field) < ^cutoff)
-    {[desc: cursor_field], limit, where}
-  end
-
-  defp cursor_params(%{cursor_field: cursor_field, last: limit}) do
-    {[desc: cursor_field], limit, []}
-  end
-
-  defp cursor_params(%{cursor_field: cursor_field, first: limit, after: cutoff}) do
-    where = dynamic([a], field(a, ^cursor_field) > ^cutoff)
-    {[asc: cursor_field], limit, where}
-  end
-
+    {order_by :: any, limit :: integer, where :: Ecto.Query.dynamic()}
   defp cursor_params(args = %{cursor_field: cursor_field}) do
-    {[asc: cursor_field], Map.get(args, :first), []}
+    {order, limit} =
+      case args do
+        %{last: n} -> {[desc: cursor_field], n}
+        %{first: n} -> {[asc: cursor_field], n}
+        _ -> {[asc: cursor_field], nil}
+      end
+
+    where =
+      case args do
+        %{after: lower, before: upper} -> dynamic([x], field(x, ^cursor_field) > ^lower and field(x, ^cursor_field) < ^upper)
+        %{after: lower} -> dynamic([x], field(x, ^cursor_field) > ^lower)
+        %{before: upper} -> dynamic([x], field(x, ^cursor_field) < ^upper)
+        _ -> []
+      end
+
+    {order, limit, where}
   end
 end

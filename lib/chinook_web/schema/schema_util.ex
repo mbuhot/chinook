@@ -6,23 +6,23 @@ defmodule ChinookWeb.SchemaUtil do
 
   A default cursor field must be provided, incase neither of :before or :after are given.
   """
-  def decode_cursor(pagination_args = %{after: cursor}, _default_field) do
-    [field, value] = cursor |> Base.decode64!() |> String.split(":")
+  def decode_cursor(pagination_args, default_cursor_field) do
     pagination_args
-    |> Map.put(:cursor_field, String.to_existing_atom(field))
-    |> Map.put(:after, value)
+    |> Map.put(:cursor_field, default_cursor_field)
+    |> decode_cursor_arg(:after)
+    |> decode_cursor_arg(:before)
   end
 
-  def decode_cursor(pagination_args = %{before: cursor}, _default_field) do
-    [field, value] = cursor |> Base.decode64!() |> String.split(":")
-    pagination_args
-    |> Map.put(:cursor_field, String.to_existing_atom(field))
-    |> Map.put(:before, value)
-  end
+  defp decode_cursor_arg(pagination_args, arg) do
+    case pagination_args do
+      %{^arg => cursor} ->
+        [field, value] = cursor |> Base.decode64!() |> String.split(":")
+        pagination_args
+        |> Map.put(:cursor_field, String.to_existing_atom(field))
+        |> Map.put(arg, value)
 
-  def decode_cursor(pagination_args, default_field) do
-    pagination_args
-    |> Map.put(:cursor_field, default_field)
+      _ -> pagination_args
+    end
   end
 
 
@@ -43,7 +43,7 @@ defmodule ChinookWeb.SchemaUtil do
   Works like Absinthe.Resolution.Helpers.batch, converting the
   result of the batch result into connection using connection_from_slice/2
   """
-  def connection_batch(mod, fun, pagination_args, key) do
+  def connection_batch(pagination_args, mod, fun, key) do
     Absinthe.Resolution.Helpers.batch(
       {mod, fun, pagination_args},
       key,
