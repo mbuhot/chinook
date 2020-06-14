@@ -1,7 +1,7 @@
 defmodule Chinook.QueryUtils do
   import Ecto.Query
 
-  @spec top_n(module, atom, [opt]) :: Ecto.Query.t()
+  @spec top_n(schema :: module, association :: atom, opts :: [opt]) :: Ecto.Query.t()
         when opt:
                {:where, Ecto.Query.dynamic()}
                | {:order_by, any}
