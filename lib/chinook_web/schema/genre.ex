@@ -11,7 +11,7 @@ defmodule ChinookWeb.Schema.Genre do
 
     connection field :tracks, node_type: :track do
       resolve fn pagination_args, %{source: genre} ->
-        pagination_args = SchemaUtil.decode_cursor(pagination_args, :album_id)
+        pagination_args = SchemaUtil.decode_cursor(pagination_args, :track_id)
         SchemaUtil.connection_batch(Track.Resolvers, :tracks_for_genre_ids, pagination_args, genre.genre_id)
       end
     end
@@ -34,7 +34,6 @@ defmodule ChinookWeb.Schema.Genre do
       Genre
       |> QueryUtils.cursor_by(pagination_args)
       |> Repo.all()
-      |> Enum.sort_by(&Map.get(&1, pagination_args.cursor_field))
     end
 
     def genres_by_ids(_args, genre_ids) do

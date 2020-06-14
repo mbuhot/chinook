@@ -1,22 +1,11 @@
 defmodule ChinookWeb.SchemaUtil do
   require Logger
 
-  def batch(mod, fun, key) do
-    batch(mod, fun, [], key)
-  end
+  @doc """
+  Decode cursor field and cutoff value from pagination args.
 
-  def batch(mod, fun, args, key) do
-    Absinthe.Resolution.Helpers.batch(
-      {mod, fun, args},
-      key,
-      &{:ok, Map.get(&1, key)}
-    )
-  end
-
-  def item_cursor(item, %{cursor_field: field}) do
-    "#{field}:#{Map.get(item, field)}" |> Base.encode64()
-  end
-
+  A default cursor field must be provided, incase neither of :before or :after are given.
+  """
   def decode_cursor(pagination_args = %{after: cursor}, _default_field) do
     [field, value] = cursor |> Base.decode64!() |> String.split(":")
     pagination_args
@@ -36,7 +25,42 @@ defmodule ChinookWeb.SchemaUtil do
     |> Map.put(:cursor_field, default_field)
   end
 
+
+  @doc """
+  Shorthand over Absinthe.Resolution.Helpers.batch
+  """
+  def batch(mod, fun, args \\ [], key) do
+    Absinthe.Resolution.Helpers.batch(
+      {mod, fun, args},
+      key,
+      &{:ok, Map.get(&1, key)}
+    )
+  end
+
+  @doc """
+  Batch resolution for relay connection fields
+
+  Works like Absinthe.Resolution.Helpers.batch, converting the
+  result of the batch result into connection using connection_from_slice/2
+  """
+  def connection_batch(mod, fun, pagination_args, key) do
+    Absinthe.Resolution.Helpers.batch(
+      {mod, fun, pagination_args},
+      key,
+      fn batch_result ->
+        data = Map.get(batch_result, key, [])
+        connection_from_slice(data, pagination_args)
+      end
+    )
+  end
+
+  @doc """
+  Convert a list of items and pagination args into Relay connection
+
+  A cursor will be generated for each item, based on `pagination_args.cursor_field`
+  """
   def connection_from_slice(items, pagination_args, opts \\ []) do
+    items = items |> Enum.sort_by(&Map.get(&1, pagination_args.cursor_field))
     {edges, first, last} = build_cursors(items, pagination_args)
 
     page_info = %{
@@ -66,6 +90,10 @@ defmodule ChinookWeb.SchemaUtil do
     do_build_cursors(rest, pagination_args, [edge | edges], cursor)
   end
 
+  defp item_cursor(item, %{cursor_field: field}) do
+    "#{field}:#{Map.get(item, field)}" |> Base.encode64()
+  end
+
   defp build_edge({item, args}, cursor) do
     args
     |> Enum.flat_map(fn
@@ -83,16 +111,5 @@ defmodule ChinookWeb.SchemaUtil do
       node: item,
       cursor: cursor
     }
-  end
-
-  def connection_batch(mod, fun, pagination_args, key) do
-    Absinthe.Resolution.Helpers.batch(
-      {mod, fun, pagination_args},
-      key,
-      fn batch_result ->
-        data = Map.get(batch_result, key, [])
-        connection_from_slice(data, pagination_args)
-      end
-    )
   end
 end

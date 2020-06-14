@@ -33,6 +33,7 @@ defmodule Chinook.QueryUtils do
   end
 
   @type pagination_args :: %{
+          required(:cursor_field) => atom,
           optional(:first) => integer,
           optional(:last) => integer,
           optional(:before) => any,
@@ -42,47 +43,39 @@ defmodule Chinook.QueryUtils do
   @spec cursor_assoc(
           schema :: module,
           assoc :: atom,
-          cursor_field :: atom,
           args :: pagination_args
         ) :: Ecto.Query.t()
-  def cursor_assoc(schema, assoc, cursor_field, args) do
-    {order_by, limit, where} = cursor_params(cursor_field, args)
+  def cursor_assoc(schema, assoc, args) do
+    {order_by, limit, where} = cursor_params(args)
     top_n(schema, assoc, where: where, order_by: order_by, limit: limit)
   end
 
   @spec cursor_by(
           schema :: module,
-          cursor_field :: atom,
           args :: pagination_args
         ) :: Ecto.Query.t()
-  def cursor_by(schema, cursor_field, args) do
-    cursor_by(schema, Map.put(args, :cursor_field, cursor_field))
-  end
-
   def cursor_by(schema, args) do
-    {order_by, limit, where} = cursor_params(args.cursor_field, args)
+    {order_by, limit, where} = cursor_params(args)
     from schema, where: ^where, order_by: ^order_by, limit: ^limit
   end
 
-  @spec cursor_params(
-          cursor_field :: atom,
-          args :: pagination_args
-        ) :: {order_by :: any, limit :: integer, where :: [] | Ecto.Query.dynamic()}
-  defp cursor_params(cursor_field, %{last: limit, before: cutoff}) do
+  @spec cursor_params(args :: pagination_args) ::
+    {order_by :: any, limit :: integer, where :: [] | Ecto.Query.dynamic()}
+  defp cursor_params(%{cursor_field: cursor_field, last: limit, before: cutoff}) do
     where = dynamic([a], field(a, ^cursor_field) < ^cutoff)
     {[desc: cursor_field], limit, where}
   end
 
-  defp cursor_params(cursor_field, %{last: limit}) do
+  defp cursor_params(%{cursor_field: cursor_field, last: limit}) do
     {[desc: cursor_field], limit, []}
   end
 
-  defp cursor_params(cursor_field, %{first: limit, after: cutoff}) do
+  defp cursor_params(%{cursor_field: cursor_field, first: limit, after: cutoff}) do
     where = dynamic([a], field(a, ^cursor_field) > ^cutoff)
     {[asc: cursor_field], limit, where}
   end
 
-  defp cursor_params(cursor_field, args) do
+  defp cursor_params(args = %{cursor_field: cursor_field}) do
     {[asc: cursor_field], Map.get(args, :first), []}
   end
 end

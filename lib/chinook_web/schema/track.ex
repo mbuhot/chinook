@@ -39,7 +39,7 @@ defmodule ChinookWeb.Schema.Track do
 
     def tracks_for_album_ids(args, album_ids) do
       Album
-      |> QueryUtils.cursor_assoc(:tracks, :track_id, args)
+      |> QueryUtils.cursor_assoc(:tracks, args)
       |> where([track], track.album_id in ^album_ids)
       |> Repo.all()
       |> Enum.group_by(& &1.album_id)
@@ -47,7 +47,7 @@ defmodule ChinookWeb.Schema.Track do
 
     def tracks_for_genre_ids(args, genre_ids) do
       Genre
-      |> QueryUtils.cursor_assoc(:tracks, :track_id, args)
+      |> QueryUtils.cursor_assoc(:tracks, args)
       |> where([track], track.genre_id in ^genre_ids)
       |> Repo.all()
       |> Enum.group_by(& &1.genre_id)

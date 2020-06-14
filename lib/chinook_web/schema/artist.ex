@@ -34,7 +34,6 @@ defmodule ChinookWeb.Schema.Artist do
       Artist
       |> QueryUtils.cursor_by(pagination_args)
       |> Repo.all()
-      |> Enum.sort_by(&Map.get(&1, pagination_args.cursor_field))
     end
 
     def artists_by_ids(_args, artist_ids) do

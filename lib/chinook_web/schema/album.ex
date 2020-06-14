@@ -48,7 +48,7 @@ defmodule ChinookWeb.Schema.Album do
 
     def albums_for_artist_ids(args, ids) do
       Artist
-      |> QueryUtils.cursor_assoc(:albums, :album_id, args)
+      |> QueryUtils.cursor_assoc(:albums, args)
       |> where([a], a.artist_id in ^ids)
       |> Repo.all()
       |> Enum.group_by(& &1.artist_id)
