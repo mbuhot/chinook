@@ -34,11 +34,10 @@ defmodule ChinookWeb.Schema.Genre do
       Repo.get(id, Genre)
     end
 
-    def list_genres(_parent, args, _resolution) do
+    def cursor(pagination_args) do
       Genre
-      |> QueryUtils.cursor_by(:genre_id, args)
+      |> QueryUtils.cursor_by(:genre_id, pagination_args)
       |> Repo.all()
-      |> Result.ok()
     end
 
     def genres_by_ids(_args, genre_ids) do

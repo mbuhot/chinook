@@ -22,6 +22,11 @@ defmodule ChinookWeb.Schema do
     end
   end
 
+  connection node_type: :artist
+  connection node_type: :album
+  connection node_type: :track
+  connection node_type: :genre
+
   query do
     node field do
       resolve fn
@@ -40,21 +45,26 @@ defmodule ChinookWeb.Schema do
     end
 
 
-    @desc "Get all artists"
-    field :artists, list_of(:artist) do
-      arg(:first, :integer)
-      arg(:after, :integer)
-      arg(:last, :integer)
-      arg(:before, :integer)
-      resolve(&Artist.Resolvers.list_artists/3)
+    @desc "Cursor over artists"
+    connection field :artists, node_type: :artist do
+      resolve fn
+        pagination_args, _ ->
+          {:ok, offset} = Absinthe.Relay.Connection.offset(pagination_args)
+          pagination_args
+          |> Artist.Resolvers.cursor()
+          |> Absinthe.Relay.Connection.from_slice(offset)
+      end
     end
 
-    field :genres, list_of(:genre) do
-      arg(:first, :integer)
-      arg(:after, :integer)
-      arg(:last, :integer)
-      arg(:before, :integer)
-      resolve(&Genre.Resolvers.list_genres/3)
+    @desc "Cursor over genres"
+    connection field :genres, node_type: :genre do
+      resolve fn
+        pagination_args, _ ->
+          {:ok, offset} = Absinthe.Relay.Connection.offset(pagination_args)
+          pagination_args
+          |> Genre.Resolvers.cursor()
+          |> Absinthe.Relay.Connection.from_slice(offset)
+      end
     end
   end
 end

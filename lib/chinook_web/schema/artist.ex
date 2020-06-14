@@ -9,15 +9,11 @@ defmodule ChinookWeb.Schema.Artist do
   node object :artist, id_fetcher: &Resolvers.id/2 do
     field(:name, non_null(:string))
 
-    field :albums, list_of(:album) do
-      arg(:first, :integer)
-      arg(:after, :integer)
-      arg(:last, :integer)
-      arg(:before, :integer)
-
-      resolve(fn artist, args, _resolution ->
-        SchemaUtil.batch(Album.Resolvers, :albums_for_artist_ids, args, artist.artist_id)
-      end)
+    connection field :albums, node_type: :album do
+      resolve fn
+        pagination_args, %{source: artist} ->
+          SchemaUtil.connection_batch(Album.Resolvers, :albums_for_artist_ids, pagination_args, artist.artist_id)
+      end
     end
   end
 
@@ -34,11 +30,10 @@ defmodule ChinookWeb.Schema.Artist do
       Repo.get(Artist, id)
     end
 
-    def list_artists(_parent, args, _resolution) do
+    def cursor(pagination_args) do
       Artist
-      |> QueryUtils.cursor_by(:artist_id, args)
+      |> QueryUtils.cursor_by(:artist_id, pagination_args)
       |> Repo.all()
-      |> Result.ok()
     end
 
     def artists_by_ids(_args, artist_ids) do
