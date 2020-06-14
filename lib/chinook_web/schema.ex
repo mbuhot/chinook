@@ -6,6 +6,7 @@ defmodule ChinookWeb.Schema do
   alias ChinookWeb.Schema.Artist
   alias ChinookWeb.Schema.Genre
   alias ChinookWeb.Schema.Track
+  alias ChinookWeb.SchemaUtil
 
   import_types(Album)
   import_types(Artist)
@@ -49,10 +50,11 @@ defmodule ChinookWeb.Schema do
     connection field :artists, node_type: :artist do
       resolve fn
         pagination_args, _ ->
-          {:ok, offset} = Absinthe.Relay.Connection.offset(pagination_args)
+          pagination_args = pagination_args |> SchemaUtil.decode_cursor(:artist_id)
+
           pagination_args
           |> Artist.Resolvers.cursor()
-          |> Absinthe.Relay.Connection.from_slice(offset)
+          |> SchemaUtil.connection_from_slice(pagination_args)
       end
     end
 
@@ -60,10 +62,11 @@ defmodule ChinookWeb.Schema do
     connection field :genres, node_type: :genre do
       resolve fn
         pagination_args, _ ->
-          {:ok, offset} = Absinthe.Relay.Connection.offset(pagination_args)
+          pagination_args = pagination_args |> SchemaUtil.decode_cursor(:genre_id)
+
           pagination_args
           |> Genre.Resolvers.cursor()
-          |> Absinthe.Relay.Connection.from_slice(offset)
+          |> SchemaUtil.connection_from_slice(pagination_args)
       end
     end
   end

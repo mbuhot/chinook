@@ -36,8 +36,9 @@ defmodule ChinookWeb.Schema.Genre do
 
     def cursor(pagination_args) do
       Genre
-      |> QueryUtils.cursor_by(:genre_id, pagination_args)
+      |> QueryUtils.cursor_by(pagination_args)
       |> Repo.all()
+      |> Enum.sort_by(&Map.get(&1, pagination_args.cursor_field))
     end
 
     def genres_by_ids(_args, genre_ids) do

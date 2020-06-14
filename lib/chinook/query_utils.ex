@@ -35,8 +35,8 @@ defmodule Chinook.QueryUtils do
   @type pagination_args :: %{
           optional(:first) => integer,
           optional(:last) => integer,
-          optional(:before) => integer,
-          optional(:after) => integer
+          optional(:before) => any,
+          optional(:after) => any
         }
 
   @spec cursor_assoc(
@@ -56,7 +56,11 @@ defmodule Chinook.QueryUtils do
           args :: pagination_args
         ) :: Ecto.Query.t()
   def cursor_by(schema, cursor_field, args) do
-    {order_by, limit, where} = cursor_params(cursor_field, args)
+    cursor_by(schema, Map.put(args, :cursor_field, cursor_field))
+  end
+
+  def cursor_by(schema, args) do
+    {order_by, limit, where} = cursor_params(args.cursor_field, args)
     from schema, where: ^where, order_by: ^order_by, limit: ^limit
   end
 

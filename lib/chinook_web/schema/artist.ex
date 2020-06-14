@@ -21,7 +21,6 @@ defmodule ChinookWeb.Schema.Artist do
     import Ecto.Query
     alias Chinook.Artist
     alias Chinook.Repo
-    alias Chinook.Result
     alias Chinook.QueryUtils
 
     def id(%Artist{artist_id: id}, _resolution), do: id
@@ -32,8 +31,9 @@ defmodule ChinookWeb.Schema.Artist do
 
     def cursor(pagination_args) do
       Artist
-      |> QueryUtils.cursor_by(:artist_id, pagination_args)
+      |> QueryUtils.cursor_by(pagination_args)
       |> Repo.all()
+      |> Enum.sort_by(&Map.get(&1, pagination_args.cursor_field))
     end
 
     def artists_by_ids(_args, artist_ids) do
