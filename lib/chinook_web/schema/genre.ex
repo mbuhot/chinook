@@ -1,10 +1,12 @@
 defmodule ChinookWeb.Schema.Genre do
   use Absinthe.Schema.Notation
+  use Absinthe.Relay.Schema.Notation
+
   alias ChinookWeb.Schema.Track
+  alias ChinookWeb.Schema.Genre.Resolvers
   alias ChinookWeb.SchemaUtil
 
-  object :genre do
-    field(:id, :id)
+  node object :genre, id_fetcher: &Resolvers.id/2 do
     field(:name, non_null(:string))
 
     field :tracks, list_of(:track) do
@@ -14,7 +16,7 @@ defmodule ChinookWeb.Schema.Genre do
       arg(:after, :integer)
 
       resolve(fn genre, args, _resolution ->
-        SchemaUtil.batch(Track.Resolvers, :tracks_for_genre_ids, args, genre.id)
+        SchemaUtil.batch(Track.Resolvers, :tracks_for_genre_ids, args, genre.genre_id)
       end)
     end
   end
@@ -26,10 +28,15 @@ defmodule ChinookWeb.Schema.Genre do
     alias Chinook.Repo
     alias Chinook.Result
 
+    def id(%Genre{genre_id: id}, _resolution), do: id
+
+    def by_id(id, _resolution) do
+      Repo.get(id, Genre)
+    end
+
     def list_genres(_parent, args, _resolution) do
       Genre
       |> QueryUtils.cursor_by(:genre_id, args)
-      |> select([g], %{id: g.genre_id, name: g.name})
       |> Repo.all()
       |> Result.ok()
     end
@@ -37,9 +44,8 @@ defmodule ChinookWeb.Schema.Genre do
     def genres_by_ids(_args, genre_ids) do
       Genre
       |> where([g], g.genre_id in ^Enum.uniq(genre_ids))
-      |> select([g], %{id: g.genre_id, name: g.name})
       |> Repo.all()
-      |> Map.new(&{&1.id, &1})
+      |> Map.new(&{&1.genre_id, &1})
     end
   end
 end

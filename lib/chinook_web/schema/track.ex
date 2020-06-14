@@ -1,11 +1,13 @@
 defmodule ChinookWeb.Schema.Track do
   use Absinthe.Schema.Notation
+  use Absinthe.Relay.Schema.Notation, :modern
+
   alias ChinookWeb.Schema.Album
   alias ChinookWeb.Schema.Genre
+  alias ChinookWeb.Schema.Track.Resolvers
   alias ChinookWeb.SchemaUtil
 
-  object :track do
-    field :id, :id
+  node object :track, id_fetcher: &Resolvers.id/2 do
     field :name, non_null(:string)
 
     field :genre, :genre do
@@ -27,12 +29,18 @@ defmodule ChinookWeb.Schema.Track do
     alias Chinook.Genre
     alias Chinook.QueryUtils
     alias Chinook.Repo
+    alias Chinook.Track
+
+    def id(%Track{track_id: id}, _resolution), do: id
+
+    def by_id(id, _resolution) do
+      Repo.get(Track, id)
+    end
 
     def tracks_for_album_ids(args, album_ids) do
       Album
       |> QueryUtils.cursor_assoc(:tracks, :track_id, args)
       |> where([track], track.album_id in ^album_ids)
-      |> select_fields()
       |> Repo.all()
       |> Enum.group_by(& &1.album_id)
     end
@@ -41,19 +49,8 @@ defmodule ChinookWeb.Schema.Track do
       Genre
       |> QueryUtils.cursor_assoc(:tracks, :track_id, args)
       |> where([track], track.genre_id in ^genre_ids)
-      |> select_fields()
       |> Repo.all()
       |> Enum.group_by(& &1.genre_id)
-    end
-
-    defp select_fields(query) do
-      query
-      |> select([track], %{
-        id: track.track_id,
-        album_id: track.album_id,
-        genre_id: track.genre_id,
-        name: track.name
-      })
     end
   end
 end
