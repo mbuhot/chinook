@@ -9,15 +9,11 @@ defmodule ChinookWeb.Schema.Genre do
   node object :genre, id_fetcher: &Resolvers.id/2 do
     field(:name, non_null(:string))
 
-    field :tracks, list_of(:track) do
-      arg(:first, :integer)
-      arg(:last, :integer)
-      arg(:before, :integer)
-      arg(:after, :integer)
-
-      resolve(fn genre, args, _resolution ->
-        SchemaUtil.batch(Track.Resolvers, :tracks_for_genre_ids, args, genre.genre_id)
-      end)
+    connection field :tracks, node_type: :track do
+      resolve fn pagination_args, %{source: genre} ->
+        pagination_args = SchemaUtil.decode_cursor(pagination_args, :album_id)
+        SchemaUtil.connection_batch(Track.Resolvers, :tracks_for_genre_ids, pagination_args, genre.genre_id)
+      end
     end
   end
 

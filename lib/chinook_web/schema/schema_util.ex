@@ -1,6 +1,10 @@
 defmodule ChinookWeb.SchemaUtil do
   require Logger
 
+  def batch(mod, fun, key) do
+    batch(mod, fun, [], key)
+  end
+
   def batch(mod, fun, args, key) do
     Absinthe.Resolution.Helpers.batch(
       {mod, fun, args},

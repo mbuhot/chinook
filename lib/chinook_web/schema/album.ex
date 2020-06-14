@@ -11,21 +11,18 @@ defmodule ChinookWeb.Schema.Album do
   node object :album, id_fetcher: &Resolvers.id/2 do
     field :title, non_null(:string)
 
-    field :tracks, list_of(:track) do
-      arg(:first, :integer)
-      arg(:last, :integer)
-      arg(:before, :integer)
-      arg(:after, :integer)
-
-      resolve(fn album, args, _resolution ->
-        SchemaUtil.batch(Track.Resolvers, :tracks_for_album_ids, args, album.album_id)
-      end)
+    connection field :tracks, node_type: :track do
+      resolve fn
+        pagination_args, %{source: album} ->
+          pagination_args = pagination_args |> SchemaUtil.decode_cursor(:track_id)
+          SchemaUtil.connection_batch(Track.Resolvers, :tracks_for_album_ids, pagination_args, album.album_id)
+      end
     end
 
     field :artist, :artist do
-      resolve(fn album, args, _resolution ->
-        SchemaUtil.batch(Artist.Resolvers, :artists_by_ids, args, album.artist_id)
-      end)
+      resolve fn album, _args, _resolution ->
+        SchemaUtil.batch(Artist.Resolvers, :artists_by_ids, album.artist_id)
+      end
     end
   end
 

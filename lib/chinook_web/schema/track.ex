@@ -12,13 +12,13 @@ defmodule ChinookWeb.Schema.Track do
 
     field :genre, :genre do
       resolve(fn track, _args, _resolution ->
-        SchemaUtil.batch(Genre.Resolvers, :genres_by_ids, [], track.genre_id)
+        SchemaUtil.batch(Genre.Resolvers, :genres_by_ids, track.genre_id)
       end)
     end
 
     field :album, :album do
       resolve(fn track, _args, _resolution ->
-        SchemaUtil.batch(Album.Resolvers, :albums_by_ids, [], track.album_id)
+        SchemaUtil.batch(Album.Resolvers, :albums_by_ids, track.album_id)
       end)
     end
   end
