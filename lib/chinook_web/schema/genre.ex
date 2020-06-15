@@ -1,20 +1,20 @@
 defmodule ChinookWeb.Schema.Genre do
   use Absinthe.Schema.Notation
-  use Absinthe.Relay.Schema.Notation
+  use Absinthe.Relay.Schema.Notation, :modern
 
   alias ChinookWeb.Schema.Track
   alias ChinookWeb.Schema.Genre.Resolvers
   alias ChinookWeb.SchemaUtil
 
-  node object :genre, id_fetcher: &Resolvers.id/2 do
+  node object(:genre, id_fetcher: &Resolvers.id/2) do
     field(:name, non_null(:string))
 
     connection field :tracks, node_type: :track do
-      resolve fn pagination_args, %{source: genre} ->
+      resolve(fn pagination_args, %{source: genre} ->
         pagination_args
         |> SchemaUtil.decode_cursor(:track_id)
         |> SchemaUtil.connection_batch(Track.Resolvers, :tracks_for_genre_ids, genre.genre_id)
-      end
+      end)
     end
   end
 
@@ -23,7 +23,6 @@ defmodule ChinookWeb.Schema.Genre do
     alias Chinook.Genre
     alias Chinook.QueryUtils
     alias Chinook.Repo
-    alias Chinook.Result
 
     def id(%Genre{genre_id: id}, _resolution), do: id
 

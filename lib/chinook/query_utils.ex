@@ -60,7 +60,7 @@ defmodule Chinook.QueryUtils do
   end
 
   @spec cursor_params(args :: pagination_args) ::
-    {order_by :: any, limit :: integer, where :: Ecto.Query.dynamic()}
+          {order_by :: any, limit :: integer, where :: [] | Ecto.Query.dynamic()}
   defp cursor_params(args = %{cursor_field: cursor_field}) do
     {order, limit} =
       case args do
@@ -71,10 +71,17 @@ defmodule Chinook.QueryUtils do
 
     where =
       case args do
-        %{after: lower, before: upper} -> dynamic([x], field(x, ^cursor_field) > ^lower and field(x, ^cursor_field) < ^upper)
-        %{after: lower} -> dynamic([x], field(x, ^cursor_field) > ^lower)
-        %{before: upper} -> dynamic([x], field(x, ^cursor_field) < ^upper)
-        _ -> []
+        %{after: lower, before: upper} ->
+          dynamic([x], field(x, ^cursor_field) > ^lower and field(x, ^cursor_field) < ^upper)
+
+        %{after: lower} ->
+          dynamic([x], field(x, ^cursor_field) > ^lower)
+
+        %{before: upper} ->
+          dynamic([x], field(x, ^cursor_field) < ^upper)
+
+        _ ->
+          []
       end
 
     {order, limit, where}
