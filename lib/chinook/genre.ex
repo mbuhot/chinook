@@ -2,6 +2,8 @@ defmodule Chinook.Genre do
   use Ecto.Schema
   alias Chinook.Track
 
+  @type t :: %__MODULE__{}
+
   @primary_key {:genre_id, :integer, source: :GenreId}
 
   schema "Genre" do

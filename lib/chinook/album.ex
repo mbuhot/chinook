@@ -3,6 +3,8 @@ defmodule Chinook.Album do
   alias Chinook.Artist
   alias Chinook.Track
 
+  @type t :: %__MODULE__{}
+
   @primary_key {:album_id, :integer, source: :AlbumId}
 
   schema "Album" do

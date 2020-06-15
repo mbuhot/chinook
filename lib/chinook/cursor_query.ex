@@ -1,12 +1,19 @@
-defmodule Chinook.QueryUtils do
+defmodule Chinook.CursorQuery do
   import Ecto.Query
 
-  @spec top_n(schema :: module, association :: atom, opts :: [opt]) :: Ecto.Query.t()
-        when opt:
-               {:where, Ecto.Query.dynamic()}
-               | {:order_by, any}
-               | {:limit, integer}
-  def top_n(schema, association, opts) do
+  @spec cursor_assoc(schema :: module, assoc :: atom, args :: PagingOptions.t()) :: Ecto.Query.t()
+  def cursor_assoc(schema, assoc, args) do
+    {order_by, limit, where} = cursor_params(args)
+    top_n(schema, assoc, where: where, order_by: order_by, limit: limit)
+  end
+
+  @spec cursor_by(schema :: module, args :: PagingOptions.t()) :: Ecto.Query.t()
+  def cursor_by(schema, args) do
+    {order_by, limit, where} = cursor_params(args)
+    from schema, where: ^where, order_by: ^order_by, limit: ^limit
+  end
+
+  defp top_n(schema, association, opts) do
     {where, opts} = Keyword.pop(opts, :where, [])
     {order_by, opts} = Keyword.pop!(opts, :order_by)
     {limit, []} = Keyword.pop!(opts, :limit)
@@ -32,35 +39,6 @@ defmodule Chinook.QueryUtils do
       order_by: ^order_by
   end
 
-  @type pagination_args :: %{
-          required(:cursor_field) => atom,
-          optional(:first) => integer,
-          optional(:last) => integer,
-          optional(:before) => any,
-          optional(:after) => any
-        }
-
-  @spec cursor_assoc(
-          schema :: module,
-          assoc :: atom,
-          args :: pagination_args
-        ) :: Ecto.Query.t()
-  def cursor_assoc(schema, assoc, args) do
-    {order_by, limit, where} = cursor_params(args)
-    top_n(schema, assoc, where: where, order_by: order_by, limit: limit)
-  end
-
-  @spec cursor_by(
-          schema :: module,
-          args :: pagination_args
-        ) :: Ecto.Query.t()
-  def cursor_by(schema, args) do
-    {order_by, limit, where} = cursor_params(args)
-    from schema, where: ^where, order_by: ^order_by, limit: ^limit
-  end
-
-  @spec cursor_params(args :: pagination_args) ::
-          {order_by :: any, limit :: integer, where :: [] | Ecto.Query.dynamic()}
   defp cursor_params(args = %{cursor_field: cursor_field}) do
     {order, limit} =
       case args do

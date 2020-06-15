@@ -5,6 +5,8 @@ defmodule Chinook.Track do
   alias Chinook.Genre
   alias Chinook.MediaType
 
+  @type t :: %__MODULE__{}
+
   @primary_key {:track_id, :integer, source: :TrackId}
   schema "Track" do
     field :name, :string, source: :Name
