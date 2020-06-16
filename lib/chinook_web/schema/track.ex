@@ -43,7 +43,7 @@ defmodule ChinookWeb.Schema.Track do
           when album_id: integer
     def tracks_for_album_ids(args, album_ids) do
       Track
-      |> CursorQuery.cursor_batch(args, batch_key_field: :album_id, batch_keys: album_ids)
+      |> CursorQuery.cursor_batch(args, partition_by: :album_id, partition_keys: album_ids)
       |> Repo.all()
       |> Enum.group_by(& &1.album_id)
     end
@@ -52,7 +52,7 @@ defmodule ChinookWeb.Schema.Track do
           when genre_id: integer
     def tracks_for_genre_ids(args, genre_ids) do
       Track
-      |> CursorQuery.cursor_batch(args, batch_key_field: :genre_id, batch_keys: genre_ids)
+      |> CursorQuery.cursor_batch(args, partition_by: :genre_id, partition_keys: genre_ids)
       |> Repo.all()
       |> Enum.group_by(& &1.genre_id)
     end

@@ -58,7 +58,7 @@ defmodule ChinookWeb.Schema.Album do
           when artist_id: integer
     def albums_for_artist_ids(args, artist_ids) do
       Album
-      |> CursorQuery.cursor_batch(args, batch_key_field: :artist_id, batch_keys: artist_ids)
+      |> CursorQuery.cursor_batch(args, partition_by: :artist_id, partition_keys: artist_ids)
       |> Repo.all()
       |> Enum.group_by(& &1.artist_id)
     end
