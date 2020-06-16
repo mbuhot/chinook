@@ -12,19 +12,18 @@ defmodule ChinookWeb.Schema.Track do
 
     field :genre, :genre do
       resolve(fn track, _args, _resolution ->
-        Relay.resolve_batch({Genre.Resolvers, :genres_by_ids}, track.genre_id)
+        Relay.resolve_batch({Genre.Resolvers, :genres_by_ids}, batch_key: track.genre_id)
       end)
     end
 
     field :album, :album do
       resolve(fn track, _args, _resolution ->
-        Relay.resolve_batch({Album.Resolvers, :albums_by_ids}, track.album_id)
+        Relay.resolve_batch({Album.Resolvers, :albums_by_ids}, batch_key: track.album_id)
       end)
     end
   end
 
   defmodule Resolvers do
-    import Ecto.Query
     alias Chinook.Album
     alias Chinook.Genre
     alias Chinook.CursorQuery
@@ -43,9 +42,8 @@ defmodule ChinookWeb.Schema.Track do
     @spec tracks_for_album_ids(PagingOptions.t(), [album_id]) :: %{album_id => Track.t()}
           when album_id: integer
     def tracks_for_album_ids(args, album_ids) do
-      Album
-      |> CursorQuery.cursor_assoc(:tracks, args)
-      |> where([track], track.album_id in ^album_ids)
+      Track
+      |> CursorQuery.cursor_batch(args, batch_key_field: :album_id, batch_keys: album_ids)
       |> Repo.all()
       |> Enum.group_by(& &1.album_id)
     end
@@ -53,9 +51,8 @@ defmodule ChinookWeb.Schema.Track do
     @spec tracks_for_genre_ids(PagingOptions.t(), [genre_id]) :: %{genre_id => Track.t()}
           when genre_id: integer
     def tracks_for_genre_ids(args, genre_ids) do
-      Genre
-      |> CursorQuery.cursor_assoc(:tracks, args)
-      |> where([track], track.genre_id in ^genre_ids)
+      Track
+      |> CursorQuery.cursor_batch(args, batch_key_field: :genre_id, batch_keys: genre_ids)
       |> Repo.all()
       |> Enum.group_by(& &1.genre_id)
     end

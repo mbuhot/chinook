@@ -13,6 +13,33 @@ defmodule Chinook.CursorQuery do
     from schema, where: ^where, order_by: ^order_by, limit: ^limit
   end
 
+  @spec cursor_batch(schema :: module, args :: PagingOptions.t(), [opt]) :: Ecto.Query.t()
+        when opt: {:batch_key_field, atom} | {:batch_keys, [integer]}
+  def cursor_batch(schema, args, batch_key_field: key_field, batch_keys: batch_keys) do
+    {order_by, limit, where} = cursor_params(args)
+
+    outer_query =
+      "batch_keys"
+      |> with_cte("batch_keys",
+        as: fragment("select unnest(? :: int[]) as batch_key", ^batch_keys)
+      )
+
+    inner_query =
+      from row in schema,
+        where: field(row, ^key_field) == parent_as(:batch).batch_key,
+        where: ^where,
+        limit: ^limit,
+        order_by: ^order_by,
+        select: row
+
+    from(
+      batch in outer_query,
+      as: :batch,
+      inner_lateral_join: row in subquery(inner_query),
+      select: row
+    )
+  end
+
   defp top_n(schema, association, opts) do
     {where, opts} = Keyword.pop(opts, :where, [])
     {order_by, opts} = Keyword.pop!(opts, :order_by)

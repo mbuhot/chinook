@@ -74,7 +74,7 @@ defmodule ChinookWeb.Relay do
   end
 
   def resolve_batch({mod, fun}, batch_key: batch_key) do
-    resolve_batch({mod, fun, []}, batch_key)
+    resolve_batch({mod, fun, []}, batch_key: batch_key)
   end
 
   defp decode_cursor(pagination_args, default_cursor_field) do
