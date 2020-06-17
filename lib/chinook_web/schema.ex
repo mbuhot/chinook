@@ -52,7 +52,7 @@ defmodule ChinookWeb.Schema do
       end)
     end
 
-    @desc "Cursor over artists"
+    @desc "Paginate artists"
     connection field :artists, node_type: :artist do
       resolve(fn
         pagination_args, _ ->
@@ -63,7 +63,7 @@ defmodule ChinookWeb.Schema do
       end)
     end
 
-    @desc "Cursor over genres"
+    @desc "Paginate genres"
     connection field :genres, node_type: :genre do
       resolve(fn
         pagination_args, _ ->
@@ -74,7 +74,7 @@ defmodule ChinookWeb.Schema do
       end)
     end
 
-    @desc "Cursor over playlists"
+    @desc "Paginate playlists"
     connection field :playlists, node_type: :playlist do
       resolve(fn
         pagination_args, _ ->
