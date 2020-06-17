@@ -2,9 +2,10 @@ defmodule ChinookWeb.Schema.Album do
   use Absinthe.Schema.Notation
   use Absinthe.Relay.Schema.Notation, :modern
 
+  import Absinthe.Resolution.Helpers, only: [dataloader: 1]
+
   alias ChinookWeb.Relay
   alias ChinookWeb.Schema.Album.Resolvers
-  alias ChinookWeb.Schema.Artist
   alias ChinookWeb.Schema.Track
 
   node object(:album, id_fetcher: &Resolvers.id/2) do
@@ -20,14 +21,7 @@ defmodule ChinookWeb.Schema.Album do
       end)
     end
 
-    field :artist, :artist do
-      resolve(fn album, _args, _resolution ->
-        Relay.resolve_batch(
-          {Artist.Resolvers, :artists_by_ids},
-          batch_key: album.artist_id
-        )
-      end)
-    end
+    field :artist, :artist, resolve: dataloader(Chinook)
   end
 
   defmodule Resolvers do
@@ -35,7 +29,6 @@ defmodule ChinookWeb.Schema.Album do
     import Chinook.QueryHelpers, only: [paginate: 3, batch_by: 4]
 
     alias Chinook.Album
-    alias Chinook.Artist
     alias Chinook.Repo
 
     @spec id(Chinook.Album.t(), map) :: integer()
@@ -44,15 +37,6 @@ defmodule ChinookWeb.Schema.Album do
     @spec by_id(integer, map) :: Album.t()
     def by_id(id, _resolution) do
       Repo.get(Album, id)
-    end
-
-    @spec albums_by_ids([], [album_id]) :: %{album_id => Album.t()}
-          when album_id: integer
-    def albums_by_ids([], album_ids) do
-      Album
-      |> where([a], a.album_id in ^Enum.uniq(album_ids))
-      |> Repo.all()
-      |> Map.new(&{&1.album_id, &1})
     end
 
     @spec albums_for_artist_ids(PagingOptions.t(), [artist_id]) :: %{artist_id => Album.t()}

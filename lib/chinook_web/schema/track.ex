@@ -2,35 +2,20 @@ defmodule ChinookWeb.Schema.Track do
   use Absinthe.Schema.Notation
   use Absinthe.Relay.Schema.Notation, :modern
 
-  alias ChinookWeb.Schema.Album
-  alias ChinookWeb.Schema.Genre
-  alias ChinookWeb.Schema.Track.Resolvers
-  alias ChinookWeb.Relay
+  import Absinthe.Resolution.Helpers, only: [dataloader: 1]
 
   node object(:track, id_fetcher: &Resolvers.id/2) do
     field(:name, non_null(:string))
-
-    field :genre, :genre do
-      resolve(fn track, _args, _resolution ->
-        Relay.resolve_batch({Genre.Resolvers, :genres_by_ids}, batch_key: track.genre_id)
-      end)
-    end
-
-    field :album, :album do
-      resolve(fn track, _args, _resolution ->
-        Relay.resolve_batch({Album.Resolvers, :albums_by_ids}, batch_key: track.album_id)
-      end)
-    end
+    field :genre, :genre, resolve: dataloader(Chinook)
+    field :album, :album, resolve: dataloader(Chinook)
   end
 
   defmodule Resolvers do
     import Ecto.Query
     import Chinook.QueryHelpers, only: [paginate: 3, batch_by: 4]
 
-    alias Chinook.Album
-    alias Chinook.Genre
-    alias Chinook.Repo
     alias Chinook.Track
+    alias Chinook.Repo
     alias Chinook.PlaylistTrack
     alias Chinook.PagingOptions
 

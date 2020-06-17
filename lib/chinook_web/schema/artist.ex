@@ -41,14 +41,5 @@ defmodule ChinookWeb.Schema.Artist do
       |> paginate(:artist, pagination_args)
       |> Repo.all()
     end
-
-    @spec artists_by_ids([], [artist_id]) :: %{artist_id => Artist.t()}
-          when artist_id: integer
-    def artists_by_ids(_args, artist_ids) do
-      Artist
-      |> where([a], a.artist_id in ^Enum.uniq(artist_ids))
-      |> Repo.all()
-      |> Map.new(&{&1.artist_id, &1})
-    end
   end
 end

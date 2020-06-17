@@ -9,6 +9,18 @@ defmodule ChinookWeb.Schema do
   alias ChinookWeb.Schema.Playlist
   alias ChinookWeb.Relay
 
+  def context(ctx) do
+    loader =
+      Dataloader.new()
+      |> Dataloader.add_source(Chinook, Chinook.Repo.data())
+
+    Map.put(ctx, :loader, loader)
+  end
+
+  def plugins do
+    [Absinthe.Middleware.Dataloader] ++ Absinthe.Plugin.defaults()
+  end
+
   import_types(Album)
   import_types(Artist)
   import_types(Genre)

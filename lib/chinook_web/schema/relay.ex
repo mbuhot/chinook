@@ -48,35 +48,6 @@ defmodule ChinookWeb.Relay do
     )
   end
 
-  @doc """
-  Resolve a field using batch
-
-  The resolver given must return a map with field data associated
-  with the given batch_key.
-
-  ## Example
-
-      field :artist, :artist do
-        resolve(fn album, _args, _resolution ->
-          Relay.resolve_batch(
-            {Artist.Resolvers, :artists_by_ids},
-            batch_key: album.artist_id
-          )
-        end)
-      end
-  """
-  def resolve_batch({mod, fun, args}, batch_key: batch_key) do
-    Absinthe.Resolution.Helpers.batch(
-      {mod, fun, args},
-      batch_key,
-      &{:ok, Map.get(&1, batch_key)}
-    )
-  end
-
-  def resolve_batch({mod, fun}, batch_key: batch_key) do
-    resolve_batch({mod, fun, []}, batch_key: batch_key)
-  end
-
   defp decode_cursor(pagination_args, default_cursor_field) do
     pagination_args
     |> Map.put(:cursor_field, default_cursor_field)

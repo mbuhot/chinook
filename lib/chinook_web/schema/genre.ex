@@ -41,14 +41,5 @@ defmodule ChinookWeb.Schema.Genre do
       |> paginate(:genre, pagination_args)
       |> Repo.all()
     end
-
-    @spec genres_by_ids([], [genre_id]) :: %{genre_id => Genre.t()}
-          when genre_id: integer
-    def genres_by_ids(_args, genre_ids) do
-      Genre
-      |> where([g], g.genre_id in ^Enum.uniq(genre_ids))
-      |> Repo.all()
-      |> Map.new(&{&1.genre_id, &1})
-    end
   end
 end
