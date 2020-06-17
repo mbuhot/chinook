@@ -10,6 +10,7 @@ defmodule ChinookWeb.Schema.Album do
 
   node object(:album, id_fetcher: &Resolvers.id/2) do
     field :title, non_null(:string)
+    field :artist, :artist, resolve: dataloader(Chinook)
 
     connection field :tracks, node_type: :track do
       resolve(fn pagination_args, %{source: album} ->
@@ -20,8 +21,6 @@ defmodule ChinookWeb.Schema.Album do
         )
       end)
     end
-
-    field :artist, :artist, resolve: dataloader(Chinook)
   end
 
   defmodule Resolvers do

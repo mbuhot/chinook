@@ -12,7 +12,7 @@ defmodule ChinookWeb.Schema do
   def context(ctx) do
     loader =
       Dataloader.new()
-      |> Dataloader.add_source(Chinook, Chinook.Repo.data())
+      |> Dataloader.add_source(Chinook, Dataloader.Ecto.new(Chinook.Repo))
 
     Map.put(ctx, :loader, loader)
   end
