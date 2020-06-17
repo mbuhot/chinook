@@ -6,12 +6,14 @@ defmodule ChinookWeb.Schema do
   alias ChinookWeb.Schema.Artist
   alias ChinookWeb.Schema.Genre
   alias ChinookWeb.Schema.Track
+  alias ChinookWeb.Schema.Playlist
   alias ChinookWeb.Relay
 
   import_types(Album)
   import_types(Artist)
   import_types(Genre)
   import_types(Track)
+  import_types(Playlist)
 
   node interface do
     resolve_type(fn
@@ -19,6 +21,7 @@ defmodule ChinookWeb.Schema do
       %Chinook.Album{}, _ -> :album
       %Chinook.Track{}, _ -> :track
       %Chinook.Genre{}, _ -> :genre
+      %Chinook.Playlist{}, _ -> :playlist
       _, _ -> nil
     end)
   end
@@ -27,6 +30,7 @@ defmodule ChinookWeb.Schema do
   connection(node_type: :album)
   connection(node_type: :track)
   connection(node_type: :genre)
+  connection(node_type: :playlist)
 
   query do
     node field do
@@ -42,6 +46,9 @@ defmodule ChinookWeb.Schema do
 
         %{type: :genre, id: id}, resolution ->
           {:ok, Genre.Resolvers.by_id(id, resolution)}
+
+        %{type: :playlist, id: id}, resolution ->
+          {:ok, Playlist.Resolvers.by_id(id, resolution)}
       end)
     end
 
@@ -63,6 +70,17 @@ defmodule ChinookWeb.Schema do
           Relay.resolve_connection(
             {Genre.Resolvers, :resolve_cursor, pagination_args},
             cursor_field: :genre_id
+          )
+      end)
+    end
+
+    @desc "Cursor over playlists"
+    connection field :playlists, node_type: :playlist do
+      resolve(fn
+        pagination_args, _ ->
+          Relay.resolve_connection(
+            {Playlist.Resolvers, :resolve_cursor, pagination_args},
+            cursor_field: :playlist_id
           )
       end)
     end

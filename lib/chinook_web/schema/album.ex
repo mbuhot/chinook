@@ -31,11 +31,12 @@ defmodule ChinookWeb.Schema.Album do
   end
 
   defmodule Resolvers do
+    import Ecto.Query
+    import Chinook.QueryHelpers, only: [paginate: 3, batch_by: 4]
+
     alias Chinook.Album
     alias Chinook.Artist
-    alias Chinook.CursorQuery
     alias Chinook.Repo
-    import Ecto.Query
 
     @spec id(Chinook.Album.t(), map) :: integer()
     def id(%Album{album_id: id}, _resolution), do: id
@@ -57,8 +58,10 @@ defmodule ChinookWeb.Schema.Album do
     @spec albums_for_artist_ids(PagingOptions.t(), [artist_id]) :: %{artist_id => Album.t()}
           when artist_id: integer
     def albums_for_artist_ids(args, artist_ids) do
-      Album
-      |> CursorQuery.cursor_batch(args, partition_by: :artist_id, partition_keys: artist_ids)
+      from(Album, as: :album)
+      |> paginate(:album, args)
+      |> batch_by(:album, :artist_id, artist_ids)
+      |> select([_artist, album], album)
       |> Repo.all()
       |> Enum.group_by(& &1.artist_id)
     end

@@ -22,7 +22,7 @@ defmodule ChinookWeb.Schema.Genre do
 
   defmodule Resolvers do
     import Ecto.Query
-    alias Chinook.CursorQuery
+    import Chinook.QueryHelpers, only: [paginate: 3]
     alias Chinook.Genre
     alias Chinook.PagingOptions
     alias Chinook.Repo
@@ -37,8 +37,8 @@ defmodule ChinookWeb.Schema.Genre do
 
     @spec resolve_cursor(PagingOptions.t()) :: [Genre.t()]
     def resolve_cursor(pagination_args) do
-      Genre
-      |> CursorQuery.cursor_by(pagination_args)
+      from(Genre, as: :genre)
+      |> paginate(:genre, pagination_args)
       |> Repo.all()
     end
 

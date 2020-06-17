@@ -22,8 +22,8 @@ defmodule ChinookWeb.Schema.Artist do
 
   defmodule Resolvers do
     import Ecto.Query
+    import Chinook.QueryHelpers, only: [paginate: 3]
     alias Chinook.Artist
-    alias Chinook.CursorQuery
     alias Chinook.PagingOptions
     alias Chinook.Repo
 
@@ -37,8 +37,8 @@ defmodule ChinookWeb.Schema.Artist do
 
     @spec resolve_cursor(args :: PagingOptions.t()) :: any
     def resolve_cursor(pagination_args) do
-      Artist
-      |> CursorQuery.cursor_by(pagination_args)
+      from(Artist, as: :artist)
+      |> paginate(:artist, pagination_args)
       |> Repo.all()
     end
 
