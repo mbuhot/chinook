@@ -6,6 +6,12 @@ defmodule ChinookWeb.Schema.Genre do
   alias ChinookWeb.Schema.Genre.Resolvers
   alias ChinookWeb.Relay
 
+  @desc "Genre sort order"
+  enum :genre_sort_order do
+    value :id, as: :genre_id
+    value :name, as: :name
+  end
+
   node object(:genre, id_fetcher: &Resolvers.id/2) do
     field(:name, non_null(:string))
 
@@ -17,7 +23,6 @@ defmodule ChinookWeb.Schema.Genre do
 
         Relay.resolve_connection_batch(
           {Track.Resolvers, :tracks_for_genre_ids, args},
-          cursor_field: args.by,
           batch_key: genre.genre_id
         )
       end)

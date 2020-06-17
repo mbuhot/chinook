@@ -8,14 +8,17 @@ defmodule ChinookWeb.Relay do
   ## Example
 
     connection field :artists, node_type: :artist do
+      arg :by, :artist_sort_order
+
       resolve(fn
-        pagination_args, _ ->
-          Relay.resolve_connection({Artist.Resolvers, :cursor, pagination_args}, cursor_field: :artist_id)
+        args, _ ->
+          args = Map.put_new(args, :by, :artist_id)
+          Relay.resolve_connection({Artist.Resolvers, :resolve_connection, args})
       end)
     end
   """
-  def resolve_connection({mod, fun, pagination_args}, cursor_field: cursor_field) do
-    pagination_args = decode_cursor(pagination_args, cursor_field)
+  def resolve_connection({mod, fun, pagination_args}) do
+    pagination_args = decode_cursor(pagination_args)
     data = apply(mod, fun, [pagination_args])
     connection_from_slice(data, pagination_args)
   end
@@ -26,20 +29,20 @@ defmodule ChinookWeb.Relay do
   ## Example
 
       connection field :albums, node_type: :album do
-        resolve(fn pagination_args, %{source: artist} ->
+        arg :by, :album_sort_order
+
+        resolve(fn args, %{source: artist} ->
+          args = Map.put(args, :by, :album_id)
+
           Relay.resolve_connection_batch(
-            {Album.Resolvers, :albums_for_artist_ids, pagination_args},
-            cursor_field: :album_id,
+            {Album.Resolvers, :albums_for_artist_ids, args},
             batch_key: artist.artist_id
           )
         end)
       end
   """
-  def resolve_connection_batch({mod, fun, pagination_args},
-        cursor_field: cursor_field,
-        batch_key: batch_key
-      ) do
-    pagination_args = decode_cursor(pagination_args, cursor_field)
+  def resolve_connection_batch({mod, fun, pagination_args}, batch_key: batch_key) do
+    pagination_args = decode_cursor(pagination_args)
 
     Absinthe.Resolution.Helpers.batch(
       {mod, fun, pagination_args},
@@ -48,9 +51,8 @@ defmodule ChinookWeb.Relay do
     )
   end
 
-  defp decode_cursor(pagination_args, default_cursor_field) do
+  defp decode_cursor(pagination_args) do
     pagination_args
-    |> Map.put(:cursor_field, default_cursor_field)
     |> decode_cursor_arg(:after)
     |> decode_cursor_arg(:before)
   end
@@ -61,7 +63,7 @@ defmodule ChinookWeb.Relay do
         [field, value] = cursor |> Base.decode64!() |> String.split(":")
 
         pagination_args
-        |> Map.put(:cursor_field, String.to_existing_atom(field))
+        |> Map.put(:by, String.to_existing_atom(field))
         |> Map.put(arg, value)
 
       _ ->
@@ -70,7 +72,7 @@ defmodule ChinookWeb.Relay do
   end
 
   defp connection_from_slice(items, pagination_args, opts \\ []) do
-    items = items |> Enum.sort_by(&Map.get(&1, pagination_args.cursor_field))
+    items = items |> Enum.sort_by(&Map.get(&1, pagination_args.by))
     {edges, first, last} = build_cursors(items, pagination_args)
 
     page_info = %{
@@ -100,7 +102,7 @@ defmodule ChinookWeb.Relay do
     do_build_cursors(rest, pagination_args, [edge | edges], cursor)
   end
 
-  defp item_cursor(item, %{cursor_field: field}) do
+  defp item_cursor(item, %{by: field}) do
     "#{field}:#{Map.get(item, field)}" |> Base.encode64()
   end
 

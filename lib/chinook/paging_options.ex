@@ -1,6 +1,6 @@
 defmodule Chinook.PagingOptions do
   @type t :: %{
-          required(:cursor_field) => atom,
+          required(:by) => atom,
           optional(:after) => any,
           optional(:before) => any,
           optional(:first) => integer,

@@ -8,6 +8,12 @@ defmodule ChinookWeb.Schema.Album do
   alias ChinookWeb.Schema.Album.Resolvers
   alias ChinookWeb.Schema.Track
 
+  @desc "Album sort order"
+  enum :album_sort_order do
+    value :id, as: :album_id
+    value :title, as: :title
+  end
+
   node object(:album, id_fetcher: &Resolvers.id/2) do
     field :title, non_null(:string)
     field :artist, :artist, resolve: dataloader(Chinook)
@@ -19,7 +25,6 @@ defmodule ChinookWeb.Schema.Album do
         args = Map.put_new(args, :by, :track_id)
         Relay.resolve_connection_batch(
           {Track.Resolvers, :tracks_for_album_ids, args},
-          cursor_field: args.by,
           batch_key: album.album_id
         )
       end)

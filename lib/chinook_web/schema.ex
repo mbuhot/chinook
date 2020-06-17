@@ -66,34 +66,34 @@ defmodule ChinookWeb.Schema do
 
     @desc "Paginate artists"
     connection field :artists, node_type: :artist do
+      arg :by, :artist_sort_order
+
       resolve(fn
-        pagination_args, _ ->
-          Relay.resolve_connection(
-            {Artist.Resolvers, :resolve_connection, pagination_args},
-            cursor_field: :artist_id
-          )
+        args, _ ->
+          args = Map.put_new(args, :by, :artist_id)
+          Relay.resolve_connection({Artist.Resolvers, :resolve_connection, args})
       end)
     end
 
     @desc "Paginate genres"
     connection field :genres, node_type: :genre do
+      arg :by, :genre_sort_order
+
       resolve(fn
-        pagination_args, _ ->
-          Relay.resolve_connection(
-            {Genre.Resolvers, :resolve_connection, pagination_args},
-            cursor_field: :genre_id
-          )
+        args, _ ->
+          args = Map.put_new(args, :by, :genre_id)
+          Relay.resolve_connection({Genre.Resolvers, :resolve_connection, args})
       end)
     end
 
     @desc "Paginate playlists"
     connection field :playlists, node_type: :playlist do
+      arg :by, :playlist_sort_order
+
       resolve(fn
-        pagination_args, _ ->
-          Relay.resolve_connection(
-            {Playlist.Resolvers, :resolve_connection, pagination_args},
-            cursor_field: :playlist_id
-          )
+        args, _ ->
+          args = Map.put_new(args, :by, :playlist_id)
+          Relay.resolve_connection({Playlist.Resolvers, :resolve_connection, args})
       end)
     end
   end

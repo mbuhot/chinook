@@ -6,14 +6,23 @@ defmodule ChinookWeb.Schema.Artist do
   alias ChinookWeb.Schema.Artist.Resolvers
   alias ChinookWeb.Relay
 
+  @desc "Artist sort order"
+  enum :artist_sort_order do
+    value :id, as: :artist_id
+    value :name, as: :name
+  end
+
   node object(:artist, id_fetcher: &Resolvers.id/2) do
     field(:name, non_null(:string))
 
     connection field :albums, node_type: :album do
-      resolve(fn pagination_args, %{source: artist} ->
+      arg :by, :album_sort_order
+
+      resolve(fn args, %{source: artist} ->
+        args = Map.put_new(args, :by, :album_id)
+
         Relay.resolve_connection_batch(
-          {Album.Resolvers, :albums_for_artist_ids, pagination_args},
-          cursor_field: :album_id,
+          {Album.Resolvers, :albums_for_artist_ids, args},
           batch_key: artist.artist_id
         )
       end)

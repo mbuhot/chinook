@@ -63,7 +63,7 @@ defmodule Chinook.QueryHelpers do
   end
 
   # Builds the order_by, limit, and where clauses for a paginated query
-  defp build_paginate_order_limit(binding, args = %{cursor_field: cursor_field}) do
+  defp build_paginate_order_limit(binding, args = %{by: cursor_field}) do
     case args do
       %{last: n} -> {[desc: dynamic([{^binding, x}], field(x, ^cursor_field))], n}
       %{first: n} -> {[asc: dynamic([{^binding, x}], field(x, ^cursor_field))], n}
@@ -71,7 +71,7 @@ defmodule Chinook.QueryHelpers do
     end
   end
 
-  defp build_paginate_where(binding, args = %{cursor_field: cursor_field}) do
+  defp build_paginate_where(binding, args = %{by: cursor_field}) do
     case args do
       %{after: lower, before: upper} ->
         dynamic(

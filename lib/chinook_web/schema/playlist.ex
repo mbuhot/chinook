@@ -6,14 +6,23 @@ defmodule ChinookWeb.Schema.Playlist do
   alias ChinookWeb.Schema.Track
   alias ChinookWeb.Relay
 
+  @desc "Playlist sort order"
+  enum :playlist_sort_order do
+    value :id, as: :playlist_id
+    value :name, as: :name
+  end
+
   node object(:playlist, id_fetcher: &Resolvers.id/2) do
     field(:name, non_null(:string))
 
     connection field :tracks, node_type: :track do
-      resolve(fn pagination_args, %{source: playlist} ->
+      arg :by, :track_sort_order
+
+      resolve(fn args, %{source: playlist} ->
+        args = Map.put_new(args, :by, :track_id)
+
         Relay.resolve_connection_batch(
-          {Track.Resolvers, :tracks_for_playlist_ids, pagination_args},
-          cursor_field: :name,
+          {Track.Resolvers, :tracks_for_playlist_ids, args},
           batch_key: playlist.playlist_id
         )
       end)
