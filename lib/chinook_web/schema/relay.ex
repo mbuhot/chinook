@@ -2,6 +2,9 @@ defmodule ChinookWeb.Relay do
   @doc """
   Resolve a Relay connection
 
+  Note this should only be used for top-level fields in the schema.
+  Connection fields defined within object types should use `resolve_connection_batch/2`.
+
   ## Example
 
     connection field :artists, node_type: :artist do
@@ -41,10 +44,7 @@ defmodule ChinookWeb.Relay do
     Absinthe.Resolution.Helpers.batch(
       {mod, fun, pagination_args},
       batch_key,
-      fn batch_result ->
-        data = Map.get(batch_result, batch_key, [])
-        connection_from_slice(data, pagination_args)
-      end
+      &connection_from_slice(Map.get(&1, batch_key, []), pagination_args)
     )
   end
 

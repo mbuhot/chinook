@@ -4,6 +4,13 @@ defmodule ChinookWeb.Schema.Track do
 
   import Absinthe.Resolution.Helpers, only: [dataloader: 1]
 
+  @desc "Track sort order"
+  enum :track_sort_order do
+    value :id, as: :track_id
+    value :name, as: :name
+    value :duration, as: :milliseconds
+  end
+
   node object(:track, id_fetcher: &Resolvers.id/2) do
     field(:name, non_null(:string))
     field :genre, :genre, resolve: dataloader(Chinook)

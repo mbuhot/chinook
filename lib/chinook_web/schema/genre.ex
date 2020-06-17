@@ -10,10 +10,14 @@ defmodule ChinookWeb.Schema.Genre do
     field(:name, non_null(:string))
 
     connection field :tracks, node_type: :track do
-      resolve(fn pagination_args, %{source: genre} ->
+      arg(:by, :track_sort_order)
+
+      resolve(fn args, %{source: genre} ->
+        args = Map.put_new(args, :by, :track_id)
+
         Relay.resolve_connection_batch(
-          {Track.Resolvers, :tracks_for_genre_ids, pagination_args},
-          cursor_field: :track_id,
+          {Track.Resolvers, :tracks_for_genre_ids, args},
+          cursor_field: args.by,
           batch_key: genre.genre_id
         )
       end)
@@ -32,7 +36,7 @@ defmodule ChinookWeb.Schema.Genre do
 
     @spec by_id(integer, map) :: Chinook.Genre.t()
     def by_id(id, _resolution) do
-      Repo.get(id, Genre)
+      Repo.get(Genre, id)
     end
 
     @spec resolve_connection(PagingOptions.t()) :: [Genre.t()]

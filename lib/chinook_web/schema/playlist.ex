@@ -33,7 +33,7 @@ defmodule ChinookWeb.Schema.Playlist do
 
     @spec by_id(integer, map) :: Chinook.Genre.t()
     def by_id(id, _resolution) do
-      Repo.get(id, Playlist)
+      Repo.get(Playlist, id)
     end
 
     @spec resolve_connection(PagingOptions.t()) :: [Genre.t()]

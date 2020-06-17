@@ -13,10 +13,13 @@ defmodule ChinookWeb.Schema.Album do
     field :artist, :artist, resolve: dataloader(Chinook)
 
     connection field :tracks, node_type: :track do
-      resolve(fn pagination_args, %{source: album} ->
+      arg :by, :track_sort_order
+
+      resolve(fn args, %{source: album} ->
+        args = Map.put_new(args, :by, :track_id)
         Relay.resolve_connection_batch(
-          {Track.Resolvers, :tracks_for_album_ids, pagination_args},
-          cursor_field: :track_id,
+          {Track.Resolvers, :tracks_for_album_ids, args},
+          cursor_field: args.by,
           batch_key: album.album_id
         )
       end)
