@@ -60,7 +60,7 @@ defmodule ChinookWeb.Relay do
   defp decode_cursor_arg(pagination_args, arg) do
     case pagination_args do
       %{^arg => cursor} ->
-        [field, value] = cursor |> Base.decode64!() |> String.split(":")
+        [field, value] = cursor |> Base.decode64!() |> String.split(":", parts: 2)
 
         pagination_args
         |> Map.put(:by, String.to_existing_atom(field))
