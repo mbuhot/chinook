@@ -57,7 +57,7 @@ defmodule ChinookWeb.Schema do
       resolve(fn
         pagination_args, _ ->
           Relay.resolve_connection(
-            {Artist.Resolvers, :resolve_cursor, pagination_args},
+            {Artist.Resolvers, :resolve_connection, pagination_args},
             cursor_field: :artist_id
           )
       end)
@@ -68,7 +68,7 @@ defmodule ChinookWeb.Schema do
       resolve(fn
         pagination_args, _ ->
           Relay.resolve_connection(
-            {Genre.Resolvers, :resolve_cursor, pagination_args},
+            {Genre.Resolvers, :resolve_connection, pagination_args},
             cursor_field: :genre_id
           )
       end)
@@ -79,7 +79,7 @@ defmodule ChinookWeb.Schema do
       resolve(fn
         pagination_args, _ ->
           Relay.resolve_connection(
-            {Playlist.Resolvers, :resolve_cursor, pagination_args},
+            {Playlist.Resolvers, :resolve_connection, pagination_args},
             cursor_field: :playlist_id
           )
       end)

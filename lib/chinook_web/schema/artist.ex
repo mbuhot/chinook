@@ -35,8 +35,8 @@ defmodule ChinookWeb.Schema.Artist do
       Repo.get(Artist, id)
     end
 
-    @spec resolve_cursor(args :: PagingOptions.t()) :: any
-    def resolve_cursor(pagination_args) do
+    @spec resolve_connection(args :: PagingOptions.t()) :: any
+    def resolve_connection(pagination_args) do
       from(Artist, as: :artist)
       |> paginate(:artist, pagination_args)
       |> Repo.all()

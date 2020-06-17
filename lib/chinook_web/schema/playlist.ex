@@ -36,8 +36,8 @@ defmodule ChinookWeb.Schema.Playlist do
       Repo.get(id, Playlist)
     end
 
-    @spec resolve_cursor(PagingOptions.t()) :: [Genre.t()]
-    def resolve_cursor(pagination_args) do
+    @spec resolve_connection(PagingOptions.t()) :: [Genre.t()]
+    def resolve_connection(pagination_args) do
       from(Playlist, as: :playlist)
       |> paginate(:playlist, pagination_args)
       |> Repo.all()

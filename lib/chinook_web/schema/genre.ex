@@ -35,8 +35,8 @@ defmodule ChinookWeb.Schema.Genre do
       Repo.get(id, Genre)
     end
 
-    @spec resolve_cursor(PagingOptions.t()) :: [Genre.t()]
-    def resolve_cursor(pagination_args) do
+    @spec resolve_connection(PagingOptions.t()) :: [Genre.t()]
+    def resolve_connection(pagination_args) do
       from(Genre, as: :genre)
       |> paginate(:genre, pagination_args)
       |> Repo.all()
