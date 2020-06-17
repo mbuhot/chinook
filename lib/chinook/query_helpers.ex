@@ -4,6 +4,29 @@ defmodule Chinook.QueryHelpers do
   alias Chinook.PagingOptions
 
   @doc """
+  Perform batch pagination on a schema based on a foreign key.
+
+  More complex queries should use the `paginate/3` and `batch_by/4` functions separately.
+
+  ## Example
+
+      def tracks_for_album_ids(args, album_ids) do
+        simple_batch_paginate(Track, args, :album_id, album_ids)
+      end
+  """
+  @spec simple_batch_paginate(module, PagingOptions.t(), foreign_key :: atom, batch_ids :: [integer]) :: %{integer => Ecto.Schema.t()}
+  def simple_batch_paginate(schema, args, foreign_key, batch_ids) do
+    alias Chinook.Repo
+
+    from(x in schema, as: :row)
+    |> paginate(:row, args)
+    |> batch_by(:row, foreign_key, batch_ids)
+    |> select([_batch, row], row)
+    |> Repo.all()
+    |> Enum.group_by(&Map.get(&1, foreign_key))
+  end
+
+  @doc """
   Apply pagination to a query using a named binding.
 
   The named binding is useful when the cursor field is not on the first

@@ -19,7 +19,7 @@ defmodule ChinookWeb.Schema.Track do
 
   defmodule Resolvers do
     import Ecto.Query
-    import Chinook.QueryHelpers, only: [paginate: 3, batch_by: 4]
+    import Chinook.QueryHelpers
 
     alias Chinook.Track
     alias Chinook.Repo
@@ -37,23 +37,13 @@ defmodule ChinookWeb.Schema.Track do
     @spec tracks_for_album_ids(PagingOptions.t(), [album_id]) :: %{album_id => Track.t()}
           when album_id: integer
     def tracks_for_album_ids(args, album_ids) do
-      from(t in Track, as: :track)
-      |> paginate(:track, args)
-      |> batch_by(:track, :album_id, album_ids)
-      |> select([_album, track], track)
-      |> Repo.all()
-      |> Enum.group_by(& &1.album_id)
+      simple_batch_paginate(Track, args, :album_id, album_ids)
     end
 
     @spec tracks_for_genre_ids(PagingOptions.t(), [genre_id]) :: %{genre_id => Track.t()}
           when genre_id: integer
     def tracks_for_genre_ids(args, genre_ids) do
-      from(t in Track, as: :track)
-      |> paginate(:track, args)
-      |> batch_by(:track, :genre_id, genre_ids)
-      |> select([_genre, track], track)
-      |> Repo.all()
-      |> Enum.group_by(& &1.genre_id)
+      simple_batch_paginate(Track, args, :genre_id, genre_ids)
     end
 
     @spec tracks_for_playlist_ids(PagingOptions.t(), [playlist_id]) :: %{playlist_id => Track.t()}
