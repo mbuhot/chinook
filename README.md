@@ -1,3 +1,5 @@
+![Elixir CI](https://github.com/mbuhot/chinook/workflows/Elixir%20CI/badge.svg)
+
 # Chinook
 
 Exploring the Chinook dataset with Elixir and Ecto.
