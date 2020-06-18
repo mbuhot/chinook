@@ -1,4 +1,4 @@
-![Elixir CI](https://github.com/mbuhot/chinook/workflows/Elixir%20CI/badge.svg)
+[![Elixir CI](https://github.com/mbuhot/chinook/workflows/Elixir%20CI/badge.svg)](https://github.com/mbuhot/chinook/actions?query=workflow%3A%22Elixir+CI%22)
 
 # Chinook
 
