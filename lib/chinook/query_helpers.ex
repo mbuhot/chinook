@@ -14,7 +14,12 @@ defmodule Chinook.QueryHelpers do
         simple_batch_paginate(Track, args, :album_id, album_ids)
       end
   """
-  @spec simple_batch_paginate(module, PagingOptions.t(), foreign_key :: atom, batch_ids :: [integer]) :: %{integer => Ecto.Schema.t()}
+  @spec simple_batch_paginate(
+          module,
+          PagingOptions.t(),
+          foreign_key :: atom,
+          batch_ids :: [integer]
+        ) :: %{integer => Ecto.Schema.t()}
   def simple_batch_paginate(schema, args, foreign_key, batch_ids) do
     alias Chinook.Repo
 

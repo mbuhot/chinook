@@ -23,6 +23,7 @@ defmodule ChinookWeb.Schema.Album do
 
       resolve(fn args, %{source: album} ->
         args = Map.put_new(args, :by, :track_id)
+
         Relay.resolve_connection_batch(
           {Track.Resolvers, :tracks_for_album_ids, args},
           batch_key: album.album_id

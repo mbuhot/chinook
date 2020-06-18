@@ -176,11 +176,9 @@ defmodule Chinook.AlbumTest do
             ]
           ]
 
-      [a1, a2 | _rest] = Repo.all(query)
+      [a1 | _rest] = Repo.all(query)
       album1 = hd(a1.albums)
       assert length(album1.tracks) == 3
-      # assert length(a1.tracks) == 3
-      # assert length(a2.tracks) == 3
     end
 
     test "Preload tracks with query using windows" do
@@ -246,7 +244,7 @@ defmodule Chinook.AlbumTest do
           preload: [tracks: ^tracks_query],
           select: album
 
-      length(Repo.all(query))
+      assert length(Repo.all(query)) == 11
     end
 
     test "Preload tracks with generic helper" do
@@ -292,9 +290,9 @@ defmodule Chinook.AlbumTest do
         |> preload(albums: [tracks: :genre])
         |> select([album], album)
 
-      [a1, a2 | _rest] = Repo.all(query)
-      # assert length(a1.albums) == 2
-      # assert length(a2.albums) == 2
+      [a1 | _rest] = Repo.all(query)
+      assert length(a1.albums) == 1
+      assert length(hd(a1.albums).tracks) == 2
     end
   end
 
