@@ -44,4 +44,4 @@ jobs:
         run: mix ecto.setup
 
       - name: Run Tests
-        run: mix test
+        run: mix test --trace
