@@ -4,31 +4,27 @@ defmodule Chinook.QueryHelpers do
   alias Chinook.PagingOptions
 
   @doc """
-  Perform batch pagination on a schema based on a foreign key.
+  Builds a function that can be used with Dataloader.Ecto batch_by
 
-  More complex queries should use the `paginate/3` and `batch_by/4` functions separately.
-
-  ## Example
-
-      def tracks_for_album_ids(args, album_ids) do
-        simple_batch_paginate(Track, args, :album_id, album_ids)
-      end
+  Parameters
+  - binding: The named binding in the query used to link to a batch id
+  - repo: The Ecto.Repo module to use
   """
-  @spec simple_batch_paginate(
-          module,
-          PagingOptions.t(),
-          foreign_key :: atom,
-          batch_ids :: [integer]
-        ) :: %{integer => Ecto.Schema.t()}
-  def simple_batch_paginate(schema, args, foreign_key, batch_ids) do
-    alias Chinook.Repo
+  @spec simple_batch(repo :: module, binding :: atom) ::
+          (Ecto.Queryable.t(), Ecto.Query.t(), atom, [integer], Keyword.t() -> [struct])
+  def simple_batch(binding, repo) do
+    fn _queryable, query, col, inputs, repo_opts ->
+      groups =
+        from(x in query)
+        |> batch_by(binding, col, inputs)
+        |> select([_batch, row], row)
+        |> repo.all(repo_opts)
+        |> Enum.group_by(&Map.get(&1, col))
 
-    from(x in schema, as: :row)
-    |> paginate(:row, args)
-    |> batch_by(:row, foreign_key, batch_ids)
-    |> select([_batch, row], row)
-    |> Repo.all()
-    |> Enum.group_by(&Map.get(&1, foreign_key))
+      for value <- inputs do
+        Map.get(groups, value, [])
+      end
+    end
   end
 
   @doc """

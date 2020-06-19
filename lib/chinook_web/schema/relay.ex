@@ -1,54 +1,66 @@
 defmodule ChinookWeb.Relay do
   @doc """
+  Resolve an `id` field from the primary key of an Ecto schema
+  """
+  def id(x, _resolution) do
+    Map.get(x, hd(x.__struct__.__schema__(:primary_key)))
+  end
+
+  @doc """
   Resolve a Relay connection
 
   Note this should only be used for top-level fields in the schema.
-  Connection fields defined within object types should use `resolve_connection_batch/2`.
+  Connection fields defined within object types should use `resolve_connection_dataloader`.
 
   ## Example
 
     connection field :artists, node_type: :artist do
-      arg :by, :artist_sort_order
+      arg :by, :artist_sort_order, default_value: :artist_id
 
-      resolve(fn
-        args, _ ->
-          args = Map.put_new(args, :by, :artist_id)
-          Relay.resolve_connection({Artist.Resolvers, :resolve_connection, args})
-      end)
+      resolve fn args, _resolution ->
+        Relay.resolve_connection(Artist.Resolvers, :page, args)
+      end
     end
   """
-  def resolve_connection({mod, fun, pagination_args}) do
+  def resolve_connection(mod, fun, pagination_args) do
     pagination_args = decode_cursor(pagination_args)
     data = apply(mod, fun, [pagination_args])
     connection_from_slice(data, pagination_args)
   end
 
   @doc """
-  Resolve a Relay connection with batching
+  Resolve a Relay Connection from a Dataloader.Ecto source.
+
+  Parameters:
+
+   - loader: The dataloader from resolver context
+   - source: The name of the Dataloader source to use
+   - schema: The Ecto Schema to resolve
+   - args: args to pass to the &query/2 callback
+   - [{foreign_key, val}]: foreign_key column name and value
 
   ## Example
 
-      connection field :albums, node_type: :album do
-        arg :by, :album_sort_order
+      connection field :tracks, node_type: :track do
+        arg :by, :track_sort_order, default_value: :track_id
 
-        resolve(fn args, %{source: artist} ->
-          args = Map.put(args, :by, :album_id)
-
-          Relay.resolve_connection_batch(
-            {Album.Resolvers, :albums_for_artist_ids, args},
-            batch_key: artist.artist_id
+        resolve(fn album, args, %{context: %{loader: loader}} ->
+          Relay.resolve_connection_dataloader(
+            loader, Chinook.Track.Loader, Chinook.Track, args, album_id: album.album_id
           )
         end)
       end
   """
-  def resolve_connection_batch({mod, fun, pagination_args}, batch_key: batch_key) do
-    pagination_args = decode_cursor(pagination_args)
+  def resolve_connection_dataloader(loader, source, schema, args, [{foreign_key, val}]) do
+    args = decode_cursor(args)
 
-    Absinthe.Resolution.Helpers.batch(
-      {mod, fun, pagination_args},
-      batch_key,
-      &connection_from_slice(Map.get(&1, batch_key, []), pagination_args)
-    )
+    loader
+    |> Dataloader.load(source, {{:many, schema}, args}, [{foreign_key, val}])
+    |> Absinthe.Resolution.Helpers.on_load(fn loader ->
+      loader
+      |> Dataloader.get(source, {{:many, schema}, args}, [{foreign_key, val}])
+      |> connection_from_slice(args)
+    end)
   end
 
   defp decode_cursor(pagination_args) do
@@ -71,7 +83,7 @@ defmodule ChinookWeb.Relay do
     end
   end
 
-  defp connection_from_slice(items, pagination_args, opts \\ []) do
+  def connection_from_slice(items, pagination_args, opts \\ []) do
     items = items |> Enum.sort_by(&Map.get(&1, pagination_args.by))
     {edges, first, last} = build_cursors(items, pagination_args)
 

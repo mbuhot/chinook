@@ -18,6 +18,7 @@ end
 
 defmodule Chinook.Playlist do
   use Ecto.Schema
+  alias __MODULE__
   alias Chinook.Track
   alias Chinook.PlaylistTrack
 
@@ -31,5 +32,33 @@ defmodule Chinook.Playlist do
     many_to_many :tracks, Track,
       join_through: PlaylistTrack,
       join_keys: [playlist_id: :playlist_id, track_id: :track_id]
+  end
+
+  defmodule Loader do
+    import Ecto.Query
+    import Chinook.QueryHelpers
+
+    alias Chinook.Repo
+
+    def new() do
+      Dataloader.Ecto.new(Repo, query: &query/2, run_batch: simple_batch(:playlist, Repo))
+    end
+
+    @spec by_id(integer) :: Chinook.Genre.t()
+    def by_id(id) do
+      Repo.get(Playlist, id)
+    end
+
+    def query(Playlist, args) do
+      args = Map.put_new(args, :by, :playlist_id)
+
+      from(Playlist, as: :playlist)
+      |> paginate(:playlist, args)
+    end
+
+    def page(args) do
+      query(Playlist, args)
+      |> Repo.all()
+    end
   end
 end
