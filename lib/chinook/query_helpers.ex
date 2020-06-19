@@ -10,7 +10,7 @@ defmodule Chinook.QueryHelpers do
   - binding: The named binding in the query used to link to a batch id
   - repo: The Ecto.Repo module to use
   """
-  @spec simple_batch(repo :: module, binding :: atom) ::
+  @spec simple_batch(binding :: atom, repo :: module) ::
           (Ecto.Queryable.t(), Ecto.Query.t(), atom, [integer], Keyword.t() -> [struct])
   def simple_batch(binding, repo) do
     fn _queryable, query, col, inputs, repo_opts ->
