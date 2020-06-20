@@ -5,6 +5,7 @@ defmodule ChinookWeb.Schema do
   alias ChinookWeb.Relay
   alias ChinookWeb.Schema.Album
   alias ChinookWeb.Schema.Artist
+  alias ChinookWeb.Schema.Employee
   alias ChinookWeb.Schema.Filter
   alias ChinookWeb.Schema.Genre
   alias ChinookWeb.Schema.Playlist
@@ -22,6 +23,7 @@ defmodule ChinookWeb.Schema do
   import_types Absinthe.Type.Custom
   import_types Album
   import_types Artist
+  import_types Employee
   import_types Filter
   import_types Genre
   import_types Playlist
@@ -31,6 +33,7 @@ defmodule ChinookWeb.Schema do
     resolve_type fn
       %Chinook.Album{}, _ -> :album
       %Chinook.Artist{}, _ -> :artist
+      %Chinook.Employee{}, _ -> :employee
       %Chinook.Genre{}, _ -> :genre
       %Chinook.Playlist{}, _ -> :playlist
       %Chinook.Track{}, _ -> :track
@@ -40,6 +43,7 @@ defmodule ChinookWeb.Schema do
 
   connection(node_type: :album)
   connection(node_type: :artist)
+  connection(node_type: :employee)
   connection(node_type: :genre)
   connection(node_type: :playlist)
   connection(node_type: :track)
@@ -52,6 +56,9 @@ defmodule ChinookWeb.Schema do
 
         %{type: :artist, id: id}, _resolution ->
           {:ok, Chinook.Artist.Loader.by_id(id)}
+
+        %{type: :employee, id: id}, _resolution ->
+          {:ok, Chinook.Employee.Loader.by_id(id)}
 
         %{type: :genre, id: id}, _resolution ->
           {:ok, Chinook.Genre.Loader.by_id(id)}
@@ -71,6 +78,17 @@ defmodule ChinookWeb.Schema do
 
       resolve fn args, _resolution ->
         Relay.resolve_connection(Chinook.Artist.Loader, :page, args)
+      end
+    end
+
+    @desc "Paginate employees"
+    connection field :employees, node_type: :employee do
+      arg :by, :employee_sort_order, default_value: :employee_id
+      arg :filter, :employee_filter, default_value: %{}
+
+      resolve fn args, _resolution ->
+        args = Employee.decode_filter(args)
+        Relay.resolve_connection(Chinook.Employee.Loader, :page, args)
       end
     end
 

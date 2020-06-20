@@ -32,4 +32,10 @@ defmodule ChinookWeb.Schema.Filter do
     field :lt, :decimal
     field :lte, :decimal
   end
+
+  @desc "DateTime filter"
+  input_object :datetime_filter do
+    field :before, :datetime
+    field :after, :datetime
+  end
 end

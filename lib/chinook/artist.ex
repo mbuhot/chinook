@@ -30,6 +30,13 @@ defmodule Chinook.Artist do
       Repo.get(Artist, id)
     end
 
+    @spec page(args :: PagingOptions.t()) :: [Artist.t()]
+    def page(args) do
+      args
+      |> query()
+      |> Repo.all()
+    end
+
     @spec query(PagingOptions.t()) :: Ecto.Query.t()
     def query(args) do
       args = Map.put_new(args, :by, :artist_id)
@@ -44,13 +51,6 @@ defmodule Chinook.Artist do
       Enum.reduce(filters, queryable, fn
         {:name, name_filter}, queryable -> filter_string(queryable, :name, name_filter)
       end)
-    end
-
-    @spec page(args :: PagingOptions.t()) :: [Artist.t()]
-    def page(args) do
-      args
-      |> query()
-      |> Repo.all()
     end
   end
 end

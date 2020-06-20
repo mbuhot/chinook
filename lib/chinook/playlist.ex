@@ -53,6 +53,13 @@ defmodule Chinook.Playlist do
       Repo.get(Playlist, id)
     end
 
+    @spec page(args :: PagingOptions.t()) :: [Playlist.t()]
+    def page(args) do
+      args
+      |> query()
+      |> Repo.all()
+    end
+
     @spec query(PagingOptions.t()) :: Ecto.Query.t()
     def query(args) do
       args = Map.put_new(args, :by, :playlist_id)
@@ -67,13 +74,6 @@ defmodule Chinook.Playlist do
       Enum.reduce(filters, queryable, fn
         {:name, name_filter}, queryable -> filter_string(queryable, :name, name_filter)
       end)
-    end
-
-    @spec page(args :: PagingOptions.t()) :: [Playlist.t()]
-    def page(args) do
-      args
-      |> query()
-      |> Repo.all()
     end
   end
 end

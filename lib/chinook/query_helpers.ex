@@ -87,6 +87,16 @@ defmodule Chinook.QueryHelpers do
     end)
   end
 
+  @doc """
+  Apply filters to a datetime field
+  """
+  def filter_datetime(queryable, field, filters) do
+    Enum.reduce(filters, queryable, fn
+      {:before, val}, queryable -> where(queryable, [x], field(x, ^field) < ^val)
+      {:after, val}, queryable -> where(queryable, [x], field(x, ^field) >= ^val)
+    end)
+  end
+
   # Builds the order_by, limit, and where clauses for a paginated query
   defp build_paginate_order_limit(binding, args = %{by: cursor_field}) do
     case args do
