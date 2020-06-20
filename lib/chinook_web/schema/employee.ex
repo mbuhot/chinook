@@ -48,7 +48,7 @@ defmodule ChinookWeb.Schema.Employee do
 
     field :reports_to, :employee, resolve: dataloader(Chinook.Employee.Loader)
 
-    connection field(:reports, node_type: :employee) do
+    connection field :reports, node_type: :employee do
       arg :by, :employee_sort_order, default_value: :employee_id
       arg :filter, :employee_filter, default_value: %{}
 
@@ -60,6 +60,21 @@ defmodule ChinookWeb.Schema.Employee do
           Chinook.Employee,
           args,
           reports_to_id: employee.employee_id
+        )
+      end
+    end
+
+    connection field :customers, node_type: :customer do
+      arg :by, :customer_sort_order, default_value: :customer_id
+      arg :filter, :customer_filter, default_value: %{}
+
+      resolve fn employee, args, %{context: %{loader: loader}} ->
+        Relay.resolve_connection_dataloader(
+          loader,
+          Chinook.Customer.Loader,
+          Chinook.Customer,
+          args,
+          support_rep_id: employee.employee_id
         )
       end
     end

@@ -7,5 +7,6 @@ defmodule Chinook.Loader do
     |> Dataloader.add_source(Chinook.Genre.Loader, Chinook.Genre.Loader.new())
     |> Dataloader.add_source(Chinook.Playlist.Loader, Chinook.Playlist.Loader.new())
     |> Dataloader.add_source(Chinook.Employee.Loader, Chinook.Employee.Loader.new())
+    |> Dataloader.add_source(Chinook.Customer.Loader, Chinook.Customer.Loader.new())
   end
 end
