@@ -40,24 +40,31 @@ defmodule Chinook.Playlist do
 
     alias Chinook.Repo
 
+    @spec new() :: Dataloader.Ecto.t()
     def new() do
-      Dataloader.Ecto.new(Repo, query: &query/2)
+      Dataloader.Ecto.new(
+        Repo,
+        query: fn Playlist, args -> query(args) end
+      )
     end
 
-    @spec by_id(integer) :: Chinook.Genre.t()
+    @spec by_id(integer) :: Playlist.t()
     def by_id(id) do
       Repo.get(Playlist, id)
     end
 
-    def query(Playlist, args) do
+    @spec query(PagingOptions.t()) :: Ecto.Query.t()
+    def query(args) do
       args = Map.put_new(args, :by, :playlist_id)
 
       from(Playlist, as: :playlist)
       |> paginate(:playlist, args)
     end
 
+    @spec page(args :: PagingOptions.t()) :: [Playlist.t()]
     def page(args) do
-      query(Playlist, args)
+      args
+      |> query()
       |> Repo.all()
     end
   end

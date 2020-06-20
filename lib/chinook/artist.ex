@@ -17,8 +17,12 @@ defmodule Chinook.Artist do
     import Chinook.QueryHelpers
     alias Chinook.Repo
 
+    @spec new() :: Dataloader.Ecto.t()
     def new() do
-      Dataloader.Ecto.new(Chinook.Repo, query: &query/2)
+      Dataloader.Ecto.new(
+        Repo,
+        query: fn Artist, args -> query(args) end
+      )
     end
 
     @spec by_id(integer) :: Chinook.Artist.t()
@@ -26,16 +30,18 @@ defmodule Chinook.Artist do
       Repo.get(Artist, id)
     end
 
-    def query(Artist, args) do
+    @spec query(PagingOptions.t()) :: Ecto.Query.t()
+    def query(args) do
       args = Map.put_new(args, :by, :artist_id)
 
       from(Artist, as: :artist)
       |> paginate(:artist, args)
     end
 
-    @spec page(args :: PagingOptions.t()) :: Artist.t()
+    @spec page(args :: PagingOptions.t()) :: [Artist.t()]
     def page(args) do
-      query(Artist, args)
+      args
+      |> query()
       |> Repo.all()
     end
   end

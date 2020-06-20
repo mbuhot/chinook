@@ -22,8 +22,12 @@ defmodule Chinook.Album do
 
     alias Chinook.Repo
 
+    @spec new() :: Dataloader.Ecto.t()
     def new() do
-      Dataloader.Ecto.new(Chinook.Repo, query: &query/2)
+      Dataloader.Ecto.new(
+        Chinook.Repo,
+        query: fn Album, args -> query(args) end
+      )
     end
 
     @spec by_id(integer) :: Album.t()
@@ -31,7 +35,8 @@ defmodule Chinook.Album do
       Repo.get(Album, id)
     end
 
-    def query(Album, args) do
+    @spec query(PagingOptions.t()) :: Ecto.Query.t()
+    def query(args) do
       args = Map.put_new(args, :by, :album_id)
 
       from(Album, as: :album)

@@ -31,8 +31,13 @@ defmodule Chinook.Track do
     alias Chinook.PlaylistTrack
     alias Chinook.Repo
 
+    @spec new() :: Dataloader.Ecto.t()
     def new() do
-      Dataloader.Ecto.new(Chinook.Repo, query: &query/2, run_batch: &run_batch/5)
+      Dataloader.Ecto.new(
+        Chinook.Repo,
+        query: fn Track, args -> query(args) end,
+        run_batch: &run_batch/5
+      )
     end
 
     @spec by_id(integer) :: Track.t()
@@ -40,13 +45,15 @@ defmodule Chinook.Track do
       Repo.get(Track, id)
     end
 
-    def query(Track, args) do
+    @spec query(PagingOptions.t()) :: Ecto.Query.t()
+    def query(args) do
       args = Map.put_new(args, :by, :track_id)
 
       from(Track, as: :track)
       |> paginate(:track, args)
     end
 
+    # Handle playlist batches specially due to the join table
     defp run_batch(Track, query, :playlist_id, playlist_ids, repo_opts) do
       groups =
         from(track in query,
@@ -64,6 +71,7 @@ defmodule Chinook.Track do
       end
     end
 
+    # album/genre batches can use the default run_batch
     defp run_batch(Track, query, key_field, inputs, repo_opts) do
       Dataloader.Ecto.run_batch(Repo, Track, query, key_field, inputs, repo_opts)
     end
