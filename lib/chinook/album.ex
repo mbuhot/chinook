@@ -23,7 +23,7 @@ defmodule Chinook.Album do
     alias Chinook.Repo
 
     def new() do
-      Dataloader.Ecto.new(Chinook.Repo, query: &query/2, run_batch: simple_batch(:album, Repo))
+      Dataloader.Ecto.new(Chinook.Repo, query: &query/2)
     end
 
     @spec by_id(integer) :: Album.t()

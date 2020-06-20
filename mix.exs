@@ -36,7 +36,7 @@ defmodule Chinook.MixProject do
       {:absinthe, "~> 1.5"},
       {:absinthe_plug, "~> 1.5"},
       {:absinthe_relay, "~> 1.5"},
-      {:dataloader, "~> 1.0"},
+      {:dataloader, github: "mbuhot/dataloader", branch: "batch-load-queries", override: true},
       {:ecto_sql, "~> 3.4"},
       {:floki, ">= 0.0.0", only: :test},
       {:gettext, "~> 0.11"},

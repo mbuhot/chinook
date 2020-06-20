@@ -4,30 +4,6 @@ defmodule Chinook.QueryHelpers do
   alias Chinook.PagingOptions
 
   @doc """
-  Builds a function that can be used with Dataloader.Ecto batch_by
-
-  Parameters
-  - binding: The named binding in the query used to link to a batch id
-  - repo: The Ecto.Repo module to use
-  """
-  @spec simple_batch(binding :: atom, repo :: module) ::
-          (Ecto.Queryable.t(), Ecto.Query.t(), atom, [integer], Keyword.t() -> [struct])
-  def simple_batch(binding, repo) do
-    fn _queryable, query, col, inputs, repo_opts ->
-      groups =
-        from(x in query)
-        |> batch_by(binding, col, inputs)
-        |> select([_batch, row], row)
-        |> repo.all(repo_opts)
-        |> Enum.group_by(&Map.get(&1, col))
-
-      for value <- inputs do
-        Map.get(groups, value, [])
-      end
-    end
-  end
-
-  @doc """
   Apply pagination to a query using a named binding.
 
   The named binding is useful when the cursor field is not on the first

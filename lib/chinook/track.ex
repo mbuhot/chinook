@@ -47,32 +47,25 @@ defmodule Chinook.Track do
       |> paginate(:track, args)
     end
 
-    defp run_batch(Track, query, key_field, inputs, _repo_opts) do
-      groups = load_tracks_by(key_field, query, inputs)
-
-      for value <- inputs do
-        Map.get(groups, value, [])
-      end
-    end
-
-    defp load_tracks_by(:playlist_id, query, playlist_ids) do
-      from(track in query,
+    defp run_batch(Track, query, :playlist_id, playlist_ids, repo_opts) do
+      groups =
+        from(track in query,
         join: playlist_track in PlaylistTrack,
         as: :playlist_track,
         on: track.track_id == playlist_track.track_id
       )
       |> batch_by(:playlist_track, :playlist_id, playlist_ids)
       |> select([playlist, track], {playlist.id, track})
-      |> Repo.all()
+      |> Repo.all(repo_opts)
       |> Enum.group_by(fn {playlist_id, _} -> playlist_id end, fn {_, track} -> track end)
+
+      for playlist_id <- playlist_ids do
+        Map.get(groups, playlist_id, [])
+      end
     end
 
-    defp load_tracks_by(key_field, query, inputs) do
-      query
-      |> batch_by(:track, key_field, inputs)
-      |> select([_, track], track)
-      |> Repo.all()
-      |> Enum.group_by(&Map.get(&1, key_field))
+    defp run_batch(Track, query, key_field, inputs, repo_opts) do
+      Dataloader.Ecto.run_batch(Repo, Track, query, key_field, inputs, repo_opts)
     end
   end
 end
