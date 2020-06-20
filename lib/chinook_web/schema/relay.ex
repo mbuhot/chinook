@@ -16,16 +16,17 @@ defmodule ChinookWeb.Relay do
 
     connection field :artists, node_type: :artist do
       arg :by, :artist_sort_order, default_value: :artist_id
+      arg :filter, :artist_filter, default_value: %{}
 
       resolve fn args, _resolution ->
         Relay.resolve_connection(Artist.Resolvers, :page, args)
       end
     end
   """
-  def resolve_connection(mod, fun, pagination_args) do
-    pagination_args = decode_cursor(pagination_args)
-    data = apply(mod, fun, [pagination_args])
-    connection_from_slice(data, pagination_args)
+  def resolve_connection(mod, fun, args) do
+    args = decode_cursor(args)
+    data = apply(mod, fun, [args])
+    connection_from_slice(data, args)
   end
 
   @doc """
@@ -43,6 +44,7 @@ defmodule ChinookWeb.Relay do
 
       connection field :tracks, node_type: :track do
         arg :by, :track_sort_order, default_value: :track_id
+        arg :filter, :track_filter, default_value: %{}
 
         resolve(fn album, args, %{context: %{loader: loader}} ->
           Relay.resolve_connection_dataloader(

@@ -41,6 +41,14 @@ defmodule Chinook.Album do
 
       from(Album, as: :album)
       |> paginate(:album, args)
+      |> filter(args[:filter])
+    end
+
+    def filter(queryable, nil), do: queryable
+    def filter(queryable, filters) do
+      Enum.reduce(filters, queryable, fn
+        {:title, title_filter}, queryable -> filter_string(queryable, :title, title_filter)
+      end)
     end
   end
 end

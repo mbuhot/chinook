@@ -37,6 +37,14 @@ defmodule Chinook.Genre do
 
       from(Genre, as: :genre)
       |> paginate(:genre, args)
+      |> filter(args[:filter])
+    end
+
+    def filter(queryable, nil), do: queryable
+    def filter(queryable, filters) do
+      Enum.reduce(filters, queryable, fn
+        {:name, name_filter}, queryable -> filter_string(queryable, :name, name_filter)
+      end)
     end
 
     @spec page(args :: PagingOptions.t()) :: [Genre.t()]

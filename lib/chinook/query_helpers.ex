@@ -62,6 +62,31 @@ defmodule Chinook.QueryHelpers do
     )
   end
 
+  @doc """
+  Apply filters to a string field
+  """
+  def filter_string(queryable, field, filters) do
+    Enum.reduce(filters, queryable, fn
+      {:like, pattern}, queryable ->  where(queryable, [x], like(field(x, ^field), ^pattern))
+      {:starts_with, prefix}, queryable -> where(queryable, [x], like(field(x, ^field), ^"#{prefix}%"))
+      {:ends_with, suffix}, queryable -> where(queryable, [x], like(field(x, ^field), ^"%#{suffix}"))
+    end)
+  end
+
+  @doc """
+  Apply filters to a numeric field
+  """
+  def filter_number(queryable, field, filters) do
+    Enum.reduce(filters, queryable, fn
+      {:gt, val}, queryable -> where(queryable, [x], field(x, ^field) > ^val)
+      {:gte, val}, queryable -> where(queryable, [x], field(x, ^field) >= ^val)
+      {:eq, val}, queryable -> where(queryable, [x], field(x, ^field) == ^val)
+      {:ne, val}, queryable -> where(queryable, [x], field(x, ^field) != ^val)
+      {:lt, val}, queryable -> where(queryable, [x], field(x, ^field) < ^val)
+      {:lte, val}, queryable -> where(queryable, [x], field(x, ^field) <= ^val)
+    end)
+  end
+
   # Builds the order_by, limit, and where clauses for a paginated query
   defp build_paginate_order_limit(binding, args = %{by: cursor_field}) do
     case args do

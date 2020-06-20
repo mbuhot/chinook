@@ -10,11 +10,17 @@ defmodule ChinookWeb.Schema.Genre do
     value :name, as: :name
   end
 
+  @desc "Genre filter"
+  input_object :genre_filter do
+    field :name, :string_filter
+  end
+
   node object(:genre, id_fetcher: &Relay.id/2) do
     field :name, non_null(:string)
 
     connection field :tracks, node_type: :track do
       arg :by, :track_sort_order, default_value: :track_id
+      arg :filter, :track_filter, default_value: %{}
 
       resolve fn genre, args, %{context: %{loader: loader}} ->
         Relay.resolve_connection_dataloader(

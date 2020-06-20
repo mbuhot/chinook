@@ -51,6 +51,18 @@ defmodule Chinook.Track do
 
       from(Track, as: :track)
       |> paginate(:track, args)
+      |> filter(args[:filter])
+    end
+
+    def filter(queryable, nil), do: queryable
+    def filter(queryable, filters) do
+      Enum.reduce(filters, queryable, fn
+        {:name, name_filter}, queryable -> filter_string(queryable, :name, name_filter)
+        {:composer, composer_filter}, queryable -> filter_string(queryable, :composer, composer_filter)
+        {:duration, duration_filter}, queryable -> filter_number(queryable, :milliseconds, duration_filter)
+        {:bytes, bytes_filter}, queryable -> filter_number(queryable, :bytes, bytes_filter)
+        {:unit_price, price_filter}, queryable -> filter_number(queryable, :unit_price, price_filter)
+      end)
     end
 
     # Handle playlist batches specially due to the join table

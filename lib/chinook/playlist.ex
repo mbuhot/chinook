@@ -59,6 +59,14 @@ defmodule Chinook.Playlist do
 
       from(Playlist, as: :playlist)
       |> paginate(:playlist, args)
+      |> filter(args[:filter])
+    end
+
+    def filter(queryable, nil), do: queryable
+    def filter(queryable, filters) do
+      Enum.reduce(filters, queryable, fn
+        {:name, name_filter}, queryable -> filter_string(queryable, :name, name_filter)
+      end)
     end
 
     @spec page(args :: PagingOptions.t()) :: [Playlist.t()]
