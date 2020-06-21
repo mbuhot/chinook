@@ -90,7 +90,7 @@ defmodule Chinook.Invoice do
       end)
     end
 
-    def scope(queryable, nil), do: queryable
+    def scope(queryable, nil), do: queryable |> where(false)
     def scope(queryable, f) when is_function(f), do: f.(queryable)
   end
 

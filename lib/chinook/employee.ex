@@ -139,9 +139,13 @@ defmodule Chinook.Employee do
       {:error, :not_authorized}
     end
 
-    def scope_to_self_or_manager(queryable, %Employee{employee_id: employee_id}) do
+    def scope_to_self_or_manager(queryable, %Employee{employee_id: employee_id, reports_to_id: reports_to}) do
       queryable
-      |> where([employee: e], e.employee_id == ^employee_id or e.reports_to_id == ^employee_id)
+      |> where([employee: e],
+        e.employee_id == ^employee_id or    # employee can access their own records
+        e.reports_to_id == ^employee_id or  # manager can access employee records
+        e.employee_id == ^reports_to        # employe can access manager records - TODO: limit this access
+      )
     end
 
     def scope_to_customer_rep(queryable, %Customer{support_rep_id: support_rep_id}) do

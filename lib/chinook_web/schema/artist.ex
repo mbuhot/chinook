@@ -22,15 +22,12 @@ defmodule ChinookWeb.Schema.Artist do
       arg :by, :album_sort_order, default_value: :album_id
       arg :filter, :album_filter, default_value: %{}
 
-      resolve fn artist, args, %{context: %{loader: loader}} ->
-        Relay.resolve_connection_dataloader(
-          loader,
-          Chinook.Album.Loader,
-          Chinook.Album,
-          args,
-          artist_id: artist.artist_id
-        )
-      end
+      resolve Relay.connection_dataloader(
+        Chinook.Album.Loader,
+        fn artist, args, _res ->
+          {Chinook.Album, args, artist_id: artist.artist_id}
+        end
+      )
     end
   end
 end

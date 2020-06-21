@@ -47,7 +47,10 @@ defmodule ChinookWeb.Schema.Employee do
     field :fax, :string
     field :email, :string
 
-    field :reports_to, :employee, resolve: dataloader(Chinook.Employee.Loader)
+    field :reports_to, :employee do
+      middleware Scope, [read: :employee]
+      resolve dataloader(Chinook.Employee.Loader)
+    end
 
     connection field :reports, node_type: :employee do
       arg :by, :employee_sort_order, default_value: :employee_id

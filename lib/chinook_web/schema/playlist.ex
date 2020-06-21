@@ -22,15 +22,12 @@ defmodule ChinookWeb.Schema.Playlist do
       arg :by, :track_sort_order, default_value: :track_id
       arg :filter, :track_filter, default_value: %{}
 
-      resolve fn playlist, args, %{context: %{loader: loader}} ->
-        Relay.resolve_connection_dataloader(
-          loader,
-          Chinook.Track.Loader,
-          Chinook.Track,
-          args,
-          playlist_id: playlist.playlist_id
-        )
-      end
+      resolve  Relay.connection_dataloader(
+        Chinook.Track.Loader,
+        fn playlist, args, _res ->
+          {Chinook.Track, args, playlist_id: playlist.playlist_id}
+        end
+      )
     end
   end
 end

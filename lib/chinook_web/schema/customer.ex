@@ -4,7 +4,6 @@ defmodule ChinookWeb.Schema.Customer do
 
   import Absinthe.Resolution.Helpers, only: [dataloader: 1] #, dataloader: 2]
 
-  alias __MODULE__
   alias ChinookWeb.Relay
   alias ChinookWeb.Scope
 

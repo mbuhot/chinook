@@ -5,6 +5,7 @@ defmodule ChinookWeb.Schema.Invoice do
   import Absinthe.Resolution.Helpers, only: [dataloader: 1]
 
   alias ChinookWeb.Relay
+  alias ChinookWeb.Scope
 
   @desc "Invoice sort order"
   enum :invoice_sort_order do
@@ -27,7 +28,11 @@ defmodule ChinookWeb.Schema.Invoice do
     field :billing_country, :string
     field :billing_postal_code, :string
     field :total, :decimal
-    field :customer, :customer, resolve: dataloader(Chinook.Customer.Loader)
+
+    field :customer, :customer do
+      middleware Scope, [read: :customer]
+      resolve dataloader(Chinook.Customer.Loader)
+    end
 
     # line_items is not a connection here, just a list that can be resolved along with the
     # invoice if needed by the client.
@@ -39,7 +44,10 @@ defmodule ChinookWeb.Schema.Invoice do
   node object(:invoice_line, id_fetcher: &Relay.id/2) do
     field :unit_price, :decimal
     field :quantity, :integer
-    field :invoice, :invoice, resolve: dataloader(Chinook.Invoice.Loader)
     field :track, :track, resolve: dataloader(Chinook.Track.Loader)
+    field :invoice, :invoice do
+      middleware Scope, [read: :invoice]
+      resolve dataloader(Chinook.Invoice.Loader)
+    end
   end
 end

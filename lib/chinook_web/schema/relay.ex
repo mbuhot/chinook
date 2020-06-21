@@ -10,7 +10,7 @@ defmodule ChinookWeb.Relay do
   Resolve a Relay connection
 
   Note this should only be used for top-level fields in the schema.
-  Connection fields defined within object types should use `resolve_connection_dataloader`.
+  Connection fields defined within object types should use `connection_dataloader`.
 
   ## Example
 
@@ -34,37 +34,21 @@ defmodule ChinookWeb.Relay do
 
   Parameters:
 
-   - loader: The dataloader from resolver context
    - source: The name of the Dataloader source to use
-   - schema: The Ecto Schema to resolve
-   - args: args to pass to the &query/2 callback
-   - [{foreign_key, val}]: foreign_key column name and value
+   - argsfn: callback receiving (parent, arg, resolution) and returning {schema, args, [{foreign_key, value}]}
 
   ## Example
 
-      connection field :tracks, node_type: :track do
-        arg :by, :track_sort_order, default_value: :track_id
-        arg :filter, :track_filter, default_value: %{}
-
-        resolve(fn album, args, %{context: %{loader: loader}} ->
-          Relay.resolve_connection_dataloader(
-            loader, Chinook.Track.Loader, Chinook.Track, args, album_id: album.album_id
-          )
-        end)
+      connection field :invoices, node_type: :invoice do
+        arg :by, :invoice_sort_order, default_value: :invoice_id
+        arg :filter, :invoice_filter, default_value: %{}
+        middleware Scope, [read: :invoice]
+        resolve Relay.connection_dataloader(
+          Chinook.Invoice.Loader,
+          fn customer, args, _res -> {Chinook.Invoice, args, customer_id: customer.customer_id} end
+        )
       end
   """
-  def resolve_connection_dataloader(loader, source, schema, args, [{foreign_key, val}]) do
-    args = decode_cursor(args)
-
-    loader
-    |> Dataloader.load(source, {{:many, schema}, args}, [{foreign_key, val}])
-    |> Absinthe.Resolution.Helpers.on_load(fn loader ->
-      loader
-      |> Dataloader.get(source, {{:many, schema}, args}, [{foreign_key, val}])
-      |> connection_from_slice(args)
-    end)
-  end
-
   def connection_dataloader(source, argsfn) do
     fn parent, args, res = %{context: %{loader: loader}} ->
       args = decode_cursor(args)

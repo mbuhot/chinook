@@ -22,15 +22,12 @@ defmodule ChinookWeb.Schema.Genre do
       arg :by, :track_sort_order, default_value: :track_id
       arg :filter, :track_filter, default_value: %{}
 
-      resolve fn genre, args, %{context: %{loader: loader}} ->
-        Relay.resolve_connection_dataloader(
-          loader,
-          Chinook.Track.Loader,
-          Chinook.Track,
-          args,
-          genre_id: genre.genre_id
-        )
-      end
+      resolve Relay.connection_dataloader(
+        Chinook.Track.Loader,
+        fn genre, args, _res ->
+          {Chinook.Track, args, genre_id: genre.genre_id}
+        end
+      )
     end
   end
 end
