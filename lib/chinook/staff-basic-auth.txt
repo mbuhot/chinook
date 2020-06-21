@@ -1,0 +1,42 @@
+[
+  %{
+    basic_auth: "Basic YW5kcmV3QGNoaW5vb2tjb3JwLmNvbTpwYXNzd29yZA==",
+    email: "andrew@chinookcorp.com",
+    title: "General Manager"
+  },
+  %{
+    basic_auth: "Basic bmFuY3lAY2hpbm9va2NvcnAuY29tOnBhc3N3b3Jk",
+    email: "nancy@chinookcorp.com",
+    title: "Sales Manager"
+  },
+  %{
+    basic_auth: "Basic amFuZUBjaGlub29rY29ycC5jb206cGFzc3dvcmQ=",
+    email: "jane@chinookcorp.com",
+    title: "Sales Support Agent"
+  },
+  %{
+    basic_auth: "Basic bWFyZ2FyZXRAY2hpbm9va2NvcnAuY29tOnBhc3N3b3Jk",
+    email: "margaret@chinookcorp.com",
+    title: "Sales Support Agent"
+  },
+  %{
+    basic_auth: "Basic c3RldmVAY2hpbm9va2NvcnAuY29tOnBhc3N3b3Jk",
+    email: "steve@chinookcorp.com",
+    title: "Sales Support Agent"
+  },
+  %{
+    basic_auth: "Basic bWljaGFlbEBjaGlub29rY29ycC5jb206cGFzc3dvcmQ=",
+    email: "michael@chinookcorp.com",
+    title: "IT Manager"
+  },
+  %{
+    basic_auth: "Basic cm9iZXJ0QGNoaW5vb2tjb3JwLmNvbTpwYXNzd29yZA==",
+    email: "robert@chinookcorp.com",
+    title: "IT Staff"
+  },
+  %{
+    basic_auth: "Basic bGF1cmFAY2hpbm9va2NvcnAuY29tOnBhc3N3b3Jk",
+    email: "laura@chinookcorp.com",
+    title: "IT Staff"
+  }
+]

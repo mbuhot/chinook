@@ -84,16 +84,30 @@ defmodule Chinook.Customer do
     end
 
     def scope(queryable, nil), do: queryable
-    def scope(queryable, scope), do: queryable |> where(^scope)
+    def scope(queryable, scope) when is_function(scope), do: scope.(queryable)
   end
 
   defmodule Auth do
     import Ecto.Query
 
-    def can?(%Employee{title: "General Manager"}, :read, :customer), do: {:ok, []}
-    def can?(%Employee{title: "Sales Manager"}, :read, :customer), do: {:ok, []}
-    def can?(%Employee{title: "Sales Support Agent"} = e, :read, :customer), do: {:ok, dynamic([c], c.support_rep_id == ^e.employee_id)}
+    def can?(%Employee{title: "General Manager"}, :read, :customer), do: {:ok, nil}
+    def can?(%Employee{title: "Sales Manager"}, :read, :customer), do: {:ok, nil}
+    def can?(%Employee{title: "Sales Support Agent"} = e, :read, :customer) do
+      {:ok, &scope_to_support_rep(&1, e)}
+    end
     def can?(%Employee{}, :read, :customer), do: {:error, :not_authorized}
-    def can?(%Customer{customer_id: customer_id}, :read, :customer), do: {:ok, dynamic([c], c.customer_id == ^customer_id)}
+    def can?(%Customer{} = c, :read, :customer) do
+      {:ok, &scope_to_customer(&1, c)}
+    end
+
+    def scope_to_customer(queryable, %Customer{customer_id: customer_id}) do
+      queryable
+      |> where([customer: c], c.customer_id == ^customer_id)
+    end
+
+    def scope_to_support_rep(queryable, %Employee{employee_id: employee_id}) do
+      queryable
+      |> where([customer: c], c.support_rep_id == ^employee_id)
+    end
   end
 end
