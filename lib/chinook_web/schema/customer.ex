@@ -41,5 +41,20 @@ defmodule ChinookWeb.Schema.Customer do
     field :fax, :string
     field :email, :string
     field :support_rep, :employee, resolve: dataloader(Chinook.Employee.Loader)
+
+    connection field :invoices, node_type: :invoice do
+      arg :by, :invoice_sort_order, default_value: :invoice_id
+      arg :filter, :invoice_filter, default_value: %{}
+
+      resolve fn customer, args, %{context: %{loader: loader}} ->
+        Relay.resolve_connection_dataloader(
+          loader,
+          Chinook.Invoice.Loader,
+          Chinook.Invoice,
+          args,
+          customer_id: customer.customer_id
+        )
+      end
+    end
   end
 end

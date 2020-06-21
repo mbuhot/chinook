@@ -9,6 +9,7 @@ defmodule ChinookWeb.Schema do
   alias ChinookWeb.Schema.Employee
   alias ChinookWeb.Schema.Filter
   alias ChinookWeb.Schema.Genre
+  alias ChinookWeb.Schema.Invoice
   alias ChinookWeb.Schema.Playlist
   alias ChinookWeb.Schema.Track
 
@@ -28,6 +29,7 @@ defmodule ChinookWeb.Schema do
   import_types Employee
   import_types Filter
   import_types Genre
+  import_types Invoice
   import_types Playlist
   import_types Track
 
@@ -38,6 +40,7 @@ defmodule ChinookWeb.Schema do
       %Chinook.Customer{}, _ -> :customer
       %Chinook.Employee{}, _ -> :employee
       %Chinook.Genre{}, _ -> :genre
+      %Chinook.Invoice{}, _ -> :invoice
       %Chinook.Playlist{}, _ -> :playlist
       %Chinook.Track{}, _ -> :track
       _, _ -> nil
@@ -49,6 +52,7 @@ defmodule ChinookWeb.Schema do
   connection(node_type: :customer)
   connection(node_type: :employee)
   connection(node_type: :genre)
+  connection(node_type: :invoice)
   connection(node_type: :playlist)
   connection(node_type: :track)
 
@@ -69,6 +73,9 @@ defmodule ChinookWeb.Schema do
 
         %{type: :genre, id: id}, _resolution ->
           {:ok, Chinook.Genre.Loader.by_id(id)}
+
+        %{type: :invoice, id: id}, _resolution ->
+          {:ok, Chinook.Invoice.Loader.by_id(id)}
 
         %{type: :playlist, id: id}, _resolution ->
           {:ok, Chinook.Playlist.Loader.by_id(id)}
@@ -116,6 +123,16 @@ defmodule ChinookWeb.Schema do
 
       resolve fn args, _resolution ->
         Relay.resolve_connection(Chinook.Genre.Loader, :page, args)
+      end
+    end
+
+    @desc "Paginate invoices"
+    connection field :invoices, node_type: :invoice do
+      arg :by, :invoice_sort_order, default_value: :invoice_id
+      arg :filter, :invoice_filter, default_value: %{}
+
+      resolve fn args, _resolution ->
+        Relay.resolve_connection(Chinook.Invoice.Loader, :page, args)
       end
     end
 
