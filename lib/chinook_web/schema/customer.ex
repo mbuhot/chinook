@@ -2,9 +2,11 @@ defmodule ChinookWeb.Schema.Customer do
   use Absinthe.Schema.Notation
   use Absinthe.Relay.Schema.Notation, :modern
 
-  import Absinthe.Resolution.Helpers, only: [dataloader: 2, on_load: 2]
+  import Absinthe.Resolution.Helpers, only: [dataloader: 1] #, dataloader: 2]
 
+  alias __MODULE__
   alias ChinookWeb.Relay
+  alias ChinookWeb.Scope
 
   @desc "Customer sort order"
   enum :customer_sort_order do
@@ -40,35 +42,19 @@ defmodule ChinookWeb.Schema.Customer do
     field :phone, :string
     field :fax, :string
     field :email, :string
-    field :support_rep, :employee, resolve: Resolvers.support_rep()
+
+    field :support_rep, :employee do
+      middleware Scope, [read: :employee]
+      resolve dataloader(Chinook.Employee.Loader)
+    end
 
     connection field :invoices, node_type: :invoice do
       arg :by, :invoice_sort_order, default_value: :invoice_id
       arg :filter, :invoice_filter, default_value: %{}
-      resolve Resolvers.invoices()
-    end
-  end
-
-  defmodule Resolvers do
-    def support_rep do
-      dataloader(
-        Chinook.Employee.Loader,
-        fn customer, _args, %{context: %{current_user: current_user}} ->
-          with {:ok, scope} <- Chinook.Employee.Auth.can?(current_user, :read, :employee) do
-            {:support_rep, %{scope: scope}}
-          else
-            _ -> :support_rep
-          end
-        end
-      )
-    end
-
-    def invoices do
-      Relay.connection_dataloader(
+      middleware Scope, [read: :invoice]
+      resolve Relay.connection_dataloader(
         Chinook.Invoice.Loader,
-        fn customer, args, res ->
-          {Chinook.Invoice, args, customer_id: customer.customer_id}
-        end
+        fn customer, args, _res -> {Chinook.Invoice, args, customer_id: customer.customer_id} end
       )
     end
   end

@@ -12,6 +12,7 @@ defmodule ChinookWeb.Schema do
   alias ChinookWeb.Schema.Invoice
   alias ChinookWeb.Schema.Playlist
   alias ChinookWeb.Schema.Track
+  alias ChinookWeb.Scope
 
   def context(ctx) do
     loader = Chinook.Loader.data()
@@ -109,16 +110,8 @@ defmodule ChinookWeb.Schema do
       arg :by, :customer_sort_order, default_value: :customer_id
       arg :filter, :customer_filter, default_value: %{}
 
-      resolve fn
-        args, %{context: %{current_user: current_user}} ->
-          with {:ok, scope} <- Chinook.Customer.Auth.can?(current_user, :read, :customer) do
-            args = Map.put(args, :scope, scope)
-            Relay.resolve_connection(Chinook.Customer.Loader, :page, args)
-          end
-
-        _args, _context ->
-          {:error, :not_authorized}
-      end
+      middleware Scope, [read: :customer]
+      resolve fn args, _res -> Relay.resolve_connection(Chinook.Customer.Loader, :page, args) end
     end
 
     @desc "Paginate employees"

@@ -109,15 +109,15 @@ defmodule Chinook.Customer do
       end)
     end
 
-    def scope(queryable, nil), do: queryable
+    def scope(queryable, nil), do: queryable |> where(false)
     def scope(queryable, scope) when is_function(scope), do: scope.(queryable)
   end
 
   defmodule Auth do
     import Ecto.Query
 
-    def can?(%Employee{title: "General Manager"}, :read, :customer), do: {:ok, nil}
-    def can?(%Employee{title: "Sales Manager"}, :read, :customer), do: {:ok, nil}
+    def can?(%Employee{title: "General Manager"}, :read, :customer), do: {:ok, & &1}
+    def can?(%Employee{title: "Sales Manager"}, :read, :customer), do: {:ok, & &1}
 
     def can?(%Employee{title: "Sales Support Agent"} = e, :read, :customer) do
       {:ok, &scope_to_support_rep(&1, e)}
