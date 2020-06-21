@@ -73,8 +73,10 @@ defmodule ChinookWeb.Schema do
         %{type: :customer}, _resolution ->
           {:error, :not_authorized}
 
-        %{type: :employee, id: id}, _resolution ->
-          {:ok, Chinook.Employee.Loader.by_id(id)}
+        %{type: :employee, id: id}, %{context: %{current_user: current_user}} ->
+          with {:ok, scope} <- Chinook.Employee.Auth.can?(current_user, :read, :employee) do
+            {:ok, Chinook.Employee.Loader.by_id(id, scope)}
+          end
 
         %{type: :genre, id: id}, _resolution ->
           {:ok, Chinook.Genre.Loader.by_id(id)}
@@ -124,9 +126,13 @@ defmodule ChinookWeb.Schema do
       arg :by, :employee_sort_order, default_value: :employee_id
       arg :filter, :employee_filter, default_value: %{}
 
-      resolve fn args, _resolution ->
-        args = Employee.decode_filter(args)
-        Relay.resolve_connection(Chinook.Employee.Loader, :page, args)
+      resolve fn
+        args, %{context: %{current_user: current_user}} ->
+          with {:ok, scope} <- Chinook.Employee.Auth.can?(current_user, :read, :employee) do
+            args = args |> Employee.decode_filter() |> Map.put(:scope, scope)
+            Relay.resolve_connection(Chinook.Employee.Loader, :page, args)
+          end
+        _args, _resolution -> {:error, :unauthorized}
       end
     end
 

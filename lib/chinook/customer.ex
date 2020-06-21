@@ -39,7 +39,10 @@ defmodule Chinook.Customer do
 
     @spec by_id(integer, Ecto.Query.dynamic()) :: Customer.t()
     def by_id(id, scope) do
-      Repo.one(from Customer, where: ^scope, where: ^[customer_id: id])
+      %{scope: scope}
+      |> query()
+      |> where([customer: c], c.customer_id == ^id)
+      |> Repo.one()
     end
 
 

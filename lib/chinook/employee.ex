@@ -39,9 +39,12 @@ defmodule Chinook.Employee do
       )
     end
 
-    @spec by_id(integer) :: Employee.t()
-    def by_id(id) do
-      Repo.get(Employee, id)
+    @spec by_id(integer, (Ecto.Queryable.t() -> Ecto.Queryable.t())) :: Employee.t()
+    def by_id(id, scope) do
+      %{scope: scope}
+      |> query()
+      |> where([employee: e], e.employee_id == ^id)
+      |> Repo.one()
     end
 
     def by_email(email) do
@@ -62,6 +65,7 @@ defmodule Chinook.Employee do
       from(Employee, as: :employee)
       |> paginate(:employee, args)
       |> filter(args[:filter])
+      |> scope(args[:scope])
     end
 
     def filter(queryable, nil), do: queryable
@@ -82,6 +86,37 @@ defmodule Chinook.Employee do
         {:fax, fax_filter}, queryable -> filter_string(queryable, :fax, fax_filter)
         {:email, email_filter}, queryable -> filter_string(queryable, :email, email_filter)
       end)
+    end
+
+    def scope(queryable, nil), do: queryable |> where(false)
+    def scope(queryable, scope) when is_function(scope), do: scope.(queryable)
+  end
+
+  defmodule Auth do
+    import Ecto.Query
+
+    alias Chinook.Customer
+
+    def can?(%Employee{title: "General Manager"}, :read, :employee), do: {:ok, & &1}
+    def can?(%Employee{} = e, :read, :employee) do
+        {:ok, &scope_to_self_or_manager(&1, e)}
+    end
+    def can?(%Customer{} = c, :read, :employee) do
+      {:ok, &scope_to_customer_rep(&1, c)}
+    end
+
+    def can?(_, :read, :employee) do
+      {:error, :not_authorized}
+    end
+
+    def scope_to_self_or_manager(queryable, %Employee{employee_id: employee_id}) do
+      queryable
+      |> where([employee: e], (e.employee_id == ^employee_id) or (e.reports_to_id == ^employee_id))
+    end
+
+    def scope_to_customer_rep(queryable, %Customer{support_rep_id: support_rep_id}) do
+      queryable
+      |> where([employee: e], (e.employee_id == ^support_rep_id))
     end
   end
 end

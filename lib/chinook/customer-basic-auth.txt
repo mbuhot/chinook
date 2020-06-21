@@ -1,0 +1,295 @@
+%{
+  basic_auth: "Basic bHVpc2dAZW1icmFlci5jb20uYnI6cGFzc3dvcmQ=",
+  email: "luisg@embraer.com.br",
+  support_rep_email: "jane@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic bGVvbmVrb2hsZXJAc3VyZmV1LmRlOnBhc3N3b3Jk",
+  email: "leonekohler@surfeu.de",
+  support_rep_email: "steve@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic ZnRyZW1ibGF5QGdtYWlsLmNvbTpwYXNzd29yZA==",
+  email: "ftremblay@gmail.com",
+  support_rep_email: "jane@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic Ympvcm4uaGFuc2VuQHlhaG9vLm5vOnBhc3N3b3Jk",
+  email: "bjorn.hansen@yahoo.no",
+  support_rep_email: "margaret@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic ZnJhbnRpc2Vrd0BqZXRicmFpbnMuY29tOnBhc3N3b3Jk",
+  email: "frantisekw@jetbrains.com",
+  support_rep_email: "margaret@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic aGhvbHlAZ21haWwuY29tOnBhc3N3b3Jk",
+  email: "hholy@gmail.com",
+  support_rep_email: "steve@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic YXN0cmlkLmdydWJlckBhcHBsZS5hdDpwYXNzd29yZA==",
+  email: "astrid.gruber@apple.at",
+  support_rep_email: "steve@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic ZGFhbl9wZWV0ZXJzQGFwcGxlLmJlOnBhc3N3b3Jk",
+  email: "daan_peeters@apple.be",
+  support_rep_email: "margaret@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic a2FyYS5uaWVsc2VuQGp1YmlpLmRrOnBhc3N3b3Jk",
+  email: "kara.nielsen@jubii.dk",
+  support_rep_email: "margaret@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic ZWR1YXJkb0B3b29kc3RvY2suY29tLmJyOnBhc3N3b3Jk",
+  email: "eduardo@woodstock.com.br",
+  support_rep_email: "margaret@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic YWxlcm9AdW9sLmNvbS5icjpwYXNzd29yZA==",
+  email: "alero@uol.com.br",
+  support_rep_email: "steve@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic cm9iZXJ0by5hbG1laWRhQHJpb3R1ci5nb3YuYnI6cGFzc3dvcmQ=",
+  email: "roberto.almeida@riotur.gov.br",
+  support_rep_email: "jane@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic ZmVybmFkYXJhbW9zNEB1b2wuY29tLmJyOnBhc3N3b3Jk",
+  email: "fernadaramos4@uol.com.br",
+  support_rep_email: "margaret@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic bXBoaWxpcHMxMkBzaGF3LmNhOnBhc3N3b3Jk",
+  email: "mphilips12@shaw.ca",
+  support_rep_email: "steve@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic amVubmlmZXJwQHJvZ2Vycy5jYTpwYXNzd29yZA==",
+  email: "jenniferp@rogers.ca",
+  support_rep_email: "jane@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic ZmhhcnJpc0Bnb29nbGUuY29tOnBhc3N3b3Jk",
+  email: "fharris@google.com",
+  support_rep_email: "margaret@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic amFja3NtaXRoQG1pY3Jvc29mdC5jb206cGFzc3dvcmQ=",
+  email: "jacksmith@microsoft.com",
+  support_rep_email: "steve@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic bWljaGVsbGViQGFvbC5jb206cGFzc3dvcmQ=",
+  email: "michelleb@aol.com",
+  support_rep_email: "jane@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic dGdveWVyQGFwcGxlLmNvbTpwYXNzd29yZA==",
+  email: "tgoyer@apple.com",
+  support_rep_email: "jane@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic ZG1pbGxlckBjb21jYXN0LmNvbTpwYXNzd29yZA==",
+  email: "dmiller@comcast.com",
+  support_rep_email: "margaret@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic a2FjaGFzZUBob3RtYWlsLmNvbTpwYXNzd29yZA==",
+  email: "kachase@hotmail.com",
+  support_rep_email: "steve@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic aGxlYWNvY2tAZ21haWwuY29tOnBhc3N3b3Jk",
+  email: "hleacock@gmail.com",
+  support_rep_email: "margaret@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic am9obmdvcmRvbjIyQHlhaG9vLmNvbTpwYXNzd29yZA==",
+  email: "johngordon22@yahoo.com",
+  support_rep_email: "margaret@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic ZnJhbHN0b25AZ21haWwuY29tOnBhc3N3b3Jk",
+  email: "fralston@gmail.com",
+  support_rep_email: "jane@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic dnN0ZXZlbnNAeWFob28uY29tOnBhc3N3b3Jk",
+  email: "vstevens@yahoo.com",
+  support_rep_email: "steve@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic cmljdW5uaW5naGFtQGhvdG1haWwuY29tOnBhc3N3b3Jk",
+  email: "ricunningham@hotmail.com",
+  support_rep_email: "margaret@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic cGF0cmljay5ncmF5QGFvbC5jb206cGFzc3dvcmQ=",
+  email: "patrick.gray@aol.com",
+  support_rep_email: "margaret@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic anViYXJuZXR0QGdtYWlsLmNvbTpwYXNzd29yZA==",
+  email: "jubarnett@gmail.com",
+  support_rep_email: "steve@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic cm9iYnJvd25Ac2hhdy5jYTpwYXNzd29yZA==",
+  email: "robbrown@shaw.ca",
+  support_rep_email: "jane@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic ZWRmcmFuY2lzQHlhY2hvby5jYTpwYXNzd29yZA==",
+  email: "edfrancis@yachoo.ca",
+  support_rep_email: "jane@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic bWFydGhhc2lsa0BnbWFpbC5jb206cGFzc3dvcmQ=",
+  email: "marthasilk@gmail.com",
+  support_rep_email: "steve@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic YWFyb25taXRjaGVsbEB5YWhvby5jYTpwYXNzd29yZA==",
+  email: "aaronmitchell@yahoo.ca",
+  support_rep_email: "margaret@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic ZWxsaWUuc3VsbGl2YW5Ac2hhdy5jYTpwYXNzd29yZA==",
+  email: "ellie.sullivan@shaw.ca",
+  support_rep_email: "jane@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic amZlcm5hbmRlc0B5YWhvby5wdDpwYXNzd29yZA==",
+  email: "jfernandes@yahoo.pt",
+  support_rep_email: "margaret@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic bWFzYW1wYWlvQHNhcG8ucHQ6cGFzc3dvcmQ=",
+  email: "masampaio@sapo.pt",
+  support_rep_email: "margaret@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic aGFubmFoLnNjaG5laWRlckB5YWhvby5kZTpwYXNzd29yZA==",
+  email: "hannah.schneider@yahoo.de",
+  support_rep_email: "steve@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic ZnppbW1lcm1hbm5AeWFob28uZGU6cGFzc3dvcmQ=",
+  email: "fzimmermann@yahoo.de",
+  support_rep_email: "jane@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic bnNjaHJvZGVyQHN1cmZldS5kZTpwYXNzd29yZA==",
+  email: "nschroder@surfeu.de",
+  support_rep_email: "jane@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic Y2FtaWxsZS5iZXJuYXJkQHlhaG9vLmZyOnBhc3N3b3Jk",
+  email: "camille.bernard@yahoo.fr",
+  support_rep_email: "margaret@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic ZG9taW5pcXVlbGVmZWJ2cmVAZ21haWwuY29tOnBhc3N3b3Jk",
+  email: "dominiquelefebvre@gmail.com",
+  support_rep_email: "margaret@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic bWFyYy5kdWJvaXNAaG90bWFpbC5jb206cGFzc3dvcmQ=",
+  email: "marc.dubois@hotmail.com",
+  support_rep_email: "steve@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic d3lhdHQuZ2lyYXJkQHlhaG9vLmZyOnBhc3N3b3Jk",
+  email: "wyatt.girard@yahoo.fr",
+  support_rep_email: "jane@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic aXNhYmVsbGVfbWVyY2llckBhcHBsZS5mcjpwYXNzd29yZA==",
+  email: "isabelle_mercier@apple.fr",
+  support_rep_email: "jane@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic dGVyaGkuaGFtYWxhaW5lbkBhcHBsZS5maTpwYXNzd29yZA==",
+  email: "terhi.hamalainen@apple.fi",
+  support_rep_email: "jane@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic bGFkaXNsYXZfa292YWNzQGFwcGxlLmh1OnBhc3N3b3Jk",
+  email: "ladislav_kovacs@apple.hu",
+  support_rep_email: "jane@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic aHVnaG9yZWlsbHlAYXBwbGUuaWU6cGFzc3dvcmQ=",
+  email: "hughoreilly@apple.ie",
+  support_rep_email: "jane@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic bHVjYXMubWFuY2luaUB5YWhvby5pdDpwYXNzd29yZA==",
+  email: "lucas.mancini@yahoo.it",
+  support_rep_email: "steve@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic am9oYXZhbmRlcmJlcmdAeWFob28ubmw6cGFzc3dvcmQ=",
+  email: "johavanderberg@yahoo.nl",
+  support_rep_email: "steve@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic c3RhbmlzbGF3LnfDs2pjaWtAd3AucGw6cGFzc3dvcmQ=",
+  email: "stanislaw.wójcik@wp.pl",
+  support_rep_email: "margaret@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic ZW5yaXF1ZV9tdW5vekB5YWhvby5lczpwYXNzd29yZA==",
+  email: "enrique_munoz@yahoo.es",
+  support_rep_email: "steve@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic am9ha2ltLmpvaGFuc3NvbkB5YWhvby5zZTpwYXNzd29yZA==",
+  email: "joakim.johansson@yahoo.se",
+  support_rep_email: "steve@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic ZW1tYV9qb25lc0Bob3RtYWlsLmNvbTpwYXNzd29yZA==",
+  email: "emma_jones@hotmail.com",
+  support_rep_email: "jane@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic cGhpbC5odWdoZXNAZ21haWwuY29tOnBhc3N3b3Jk",
+  email: "phil.hughes@gmail.com",
+  support_rep_email: "jane@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic c3RldmUubXVycmF5QHlhaG9vLnVrOnBhc3N3b3Jk",
+  email: "steve.murray@yahoo.uk",
+  support_rep_email: "steve@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic bWFyay50YXlsb3JAeWFob28uYXU6cGFzc3dvcmQ=",
+  email: "mark.taylor@yahoo.au",
+  support_rep_email: "margaret@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic ZGllZ28uZ3V0aWVycmV6QHlhaG9vLmFyOnBhc3N3b3Jk",
+  email: "diego.gutierrez@yahoo.ar",
+  support_rep_email: "margaret@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic bHVpc3JvamFzQHlhaG9vLmNsOnBhc3N3b3Jk",
+  email: "luisrojas@yahoo.cl",
+  support_rep_email: "steve@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic bWFub2oucGFyZWVrQHJlZGlmZi5jb206cGFzc3dvcmQ=",
+  email: "manoj.pareek@rediff.com",
+  support_rep_email: "jane@chinookcorp.com"
+}
+%{
+  basic_auth: "Basic cHVqYV9zcml2YXN0YXZhQHlhaG9vLmluOnBhc3N3b3Jk",
+  email: "puja_srivastava@yahoo.in",
+  support_rep_email: "jane@chinookcorp.com"
+}

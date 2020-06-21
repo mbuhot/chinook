@@ -65,6 +65,20 @@ defmodule ChinookWeb.Relay do
     end)
   end
 
+  def connection_dataloader(source, argsfn) do
+    fn parent, args, res = %{context: %{loader: loader}} ->
+      args = decode_cursor(args)
+      {schema, args, [{foreign_key, val}]} = argsfn.(parent, args, res)
+      loader
+      |> Dataloader.load(source, {{:many, schema}, args}, [{foreign_key, val}])
+      |> Absinthe.Resolution.Helpers.on_load(fn loader ->
+        loader
+        |> Dataloader.get(source, {{:many, schema}, args}, [{foreign_key, val}])
+        |> connection_from_slice(args)
+      end)
+    end
+  end
+
   defp decode_cursor(pagination_args) do
     pagination_args
     |> decode_cursor_arg(:after)
