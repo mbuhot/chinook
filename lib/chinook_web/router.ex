@@ -12,6 +12,7 @@ defmodule ChinookWeb.Router do
 
   pipeline :api do
     plug :accepts, ["json"]
+    plug ChinookWeb.GraphQLContext
   end
 
   scope "/", ChinookWeb do

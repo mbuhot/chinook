@@ -44,6 +44,10 @@ defmodule Chinook.Employee do
       Repo.get(Employee, id)
     end
 
+    def by_email(email) do
+      Repo.get_by(Employee, email: email)
+    end
+
     @spec page(args :: PagingOptions.t()) :: [Employee.t()]
     def page(args) do
       args

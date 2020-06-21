@@ -68,14 +68,21 @@ defmodule ChinookWeb.Schema.Employee do
       arg :by, :customer_sort_order, default_value: :customer_id
       arg :filter, :customer_filter, default_value: %{}
 
-      resolve fn employee, args, %{context: %{loader: loader}} ->
-        Relay.resolve_connection_dataloader(
-          loader,
-          Chinook.Customer.Loader,
-          Chinook.Customer,
-          args,
-          support_rep_id: employee.employee_id
-        )
+      resolve fn
+        employee, args, %{context: %{loader: loader, current_user: current_user}} ->
+          with {:ok, scope} = Chinook.Customer.Auth.can?(current_user, :read, :customer) do
+            args = Map.put(args, :scope, scope)
+            Relay.resolve_connection_dataloader(
+              loader,
+              Chinook.Customer.Loader,
+              Chinook.Customer,
+              args,
+              support_rep_id: employee.employee_id
+            )
+          end
+
+      _employee, _args, _resolution ->
+        {:error, :not_authorized}
       end
     end
   end

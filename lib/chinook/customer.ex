@@ -37,9 +37,15 @@ defmodule Chinook.Customer do
       )
     end
 
-    @spec by_id(integer) :: Customer.t()
-    def by_id(id) do
-      Repo.get(Customer, id)
+    @spec by_id(integer, Ecto.Query.dynamic()) :: Customer.t()
+    def by_id(id, scope) do
+      Repo.one(from Customer, where: ^scope, where: ^[customer_id: id])
+    end
+
+
+    @spec by_email(String.t()) :: Customer.t() | nil
+    def by_email(email) do
+      Repo.get_by(Customer, email: email)
     end
 
     @spec page(args :: PagingOptions.t()) :: [Customer.t()]
@@ -56,6 +62,7 @@ defmodule Chinook.Customer do
       from(Customer, as: :customer)
       |> paginate(:customer, args)
       |> filter(args[:filter])
+      |> scope(args[:scope])
     end
 
     def filter(queryable, nil), do: queryable
@@ -75,5 +82,18 @@ defmodule Chinook.Customer do
         {:support_rep, support_rep_id}, queryable -> queryable |> where(^[support_rep_id: support_rep_id])
       end)
     end
+
+    def scope(queryable, nil), do: queryable
+    def scope(queryable, scope), do: queryable |> where(^scope)
+  end
+
+  defmodule Auth do
+    import Ecto.Query
+
+    def can?(%Employee{title: "General Manager"}, :read, :customer), do: {:ok, []}
+    def can?(%Employee{title: "Sales Manager"}, :read, :customer), do: {:ok, []}
+    def can?(%Employee{title: "Sales Support Agent"} = e, :read, :customer), do: {:ok, dynamic([c], c.support_rep_id == ^e.employee_id)}
+    def can?(%Employee{}, :read, :customer), do: {:error, :not_authorized}
+    def can?(%Customer{customer_id: customer_id}, :read, :customer), do: {:ok, dynamic([c], c.customer_id == ^customer_id)}
   end
 end
