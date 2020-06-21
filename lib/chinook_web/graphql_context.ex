@@ -21,7 +21,7 @@ defmodule ChinookWeb.GraphQLContext do
     with {user, _pass} <- Plug.BasicAuth.parse_basic_auth(conn) do
       current_user =
         Employee.Loader.by_email(user) ||
-        Customer.Loader.by_email(user)
+          Customer.Loader.by_email(user)
 
       %{current_user: current_user}
     else

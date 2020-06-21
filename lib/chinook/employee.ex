@@ -69,22 +69,50 @@ defmodule Chinook.Employee do
     end
 
     def filter(queryable, nil), do: queryable
+
     def filter(queryable, filters) do
       Enum.reduce(filters, queryable, fn
-        {:reports_to, manager_id}, queryable -> queryable |> where(^[reports_to_id: manager_id])
-        {:last_name, last_name_filter}, queryable -> filter_string(queryable, :last_name, last_name_filter)
-        {:first_name, first_name_filter}, queryable -> filter_string(queryable, :first_name, first_name_filter)
-        {:title, title_filter}, queryable -> filter_string(queryable, :title, title_filter)
-        {:birth_date, birth_date_filter}, queryable -> filter_datetime(queryable, :birth_date, birth_date_filter)
-        {:hire_date, hire_date_filter}, queryable -> filter_datetime(queryable, :hire_date, hire_date_filter)
-        {:address, address_filter}, queryable -> filter_string(queryable, :address, address_filter)
-        {:city, city_filter}, queryable -> filter_string(queryable, :city, city_filter)
-        {:state, state_filter}, queryable -> filter_string(queryable, :state, state_filter)
-        {:country, country_filter}, queryable -> filter_string(queryable, :country, country_filter)
-        {:postal_code, postal_code_filter}, queryable -> filter_string(queryable, :postal_code, postal_code_filter)
-        {:phone, phone_filter}, queryable -> filter_string(queryable, :phone, phone_filter)
-        {:fax, fax_filter}, queryable -> filter_string(queryable, :fax, fax_filter)
-        {:email, email_filter}, queryable -> filter_string(queryable, :email, email_filter)
+        {:reports_to, manager_id}, queryable ->
+          queryable |> where(^[reports_to_id: manager_id])
+
+        {:last_name, last_name_filter}, queryable ->
+          filter_string(queryable, :last_name, last_name_filter)
+
+        {:first_name, first_name_filter}, queryable ->
+          filter_string(queryable, :first_name, first_name_filter)
+
+        {:title, title_filter}, queryable ->
+          filter_string(queryable, :title, title_filter)
+
+        {:birth_date, birth_date_filter}, queryable ->
+          filter_datetime(queryable, :birth_date, birth_date_filter)
+
+        {:hire_date, hire_date_filter}, queryable ->
+          filter_datetime(queryable, :hire_date, hire_date_filter)
+
+        {:address, address_filter}, queryable ->
+          filter_string(queryable, :address, address_filter)
+
+        {:city, city_filter}, queryable ->
+          filter_string(queryable, :city, city_filter)
+
+        {:state, state_filter}, queryable ->
+          filter_string(queryable, :state, state_filter)
+
+        {:country, country_filter}, queryable ->
+          filter_string(queryable, :country, country_filter)
+
+        {:postal_code, postal_code_filter}, queryable ->
+          filter_string(queryable, :postal_code, postal_code_filter)
+
+        {:phone, phone_filter}, queryable ->
+          filter_string(queryable, :phone, phone_filter)
+
+        {:fax, fax_filter}, queryable ->
+          filter_string(queryable, :fax, fax_filter)
+
+        {:email, email_filter}, queryable ->
+          filter_string(queryable, :email, email_filter)
       end)
     end
 
@@ -98,9 +126,11 @@ defmodule Chinook.Employee do
     alias Chinook.Customer
 
     def can?(%Employee{title: "General Manager"}, :read, :employee), do: {:ok, & &1}
+
     def can?(%Employee{} = e, :read, :employee) do
-        {:ok, &scope_to_self_or_manager(&1, e)}
+      {:ok, &scope_to_self_or_manager(&1, e)}
     end
+
     def can?(%Customer{} = c, :read, :employee) do
       {:ok, &scope_to_customer_rep(&1, c)}
     end
@@ -111,12 +141,12 @@ defmodule Chinook.Employee do
 
     def scope_to_self_or_manager(queryable, %Employee{employee_id: employee_id}) do
       queryable
-      |> where([employee: e], (e.employee_id == ^employee_id) or (e.reports_to_id == ^employee_id))
+      |> where([employee: e], e.employee_id == ^employee_id or e.reports_to_id == ^employee_id)
     end
 
     def scope_to_customer_rep(queryable, %Customer{support_rep_id: support_rep_id}) do
       queryable
-      |> where([employee: e], (e.employee_id == ^support_rep_id))
+      |> where([employee: e], e.employee_id == ^support_rep_id)
     end
   end
 end

@@ -24,9 +24,11 @@ defmodule ChinookWeb.Schema.Track do
 
   node object(:track, id_fetcher: &Relay.id/2) do
     field :name, non_null(:string)
+
     field :duration, non_null(:integer) do
-      resolve fn (_args, %{source: track}) -> {:ok, Map.get(track, :milliseconds)} end
+      resolve fn _args, %{source: track} -> {:ok, Map.get(track, :milliseconds)} end
     end
+
     field :composer, :string
     field :bytes, non_null(:integer)
     field :unit_price, non_null(:decimal)

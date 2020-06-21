@@ -69,6 +69,7 @@ defmodule ChinookWeb.Relay do
     fn parent, args, res = %{context: %{loader: loader}} ->
       args = decode_cursor(args)
       {schema, args, [{foreign_key, val}]} = argsfn.(parent, args, res)
+
       loader
       |> Dataloader.load(source, {{:many, schema}, args}, [{foreign_key, val}])
       |> Absinthe.Resolution.Helpers.on_load(fn loader ->

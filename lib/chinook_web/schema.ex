@@ -132,7 +132,9 @@ defmodule ChinookWeb.Schema do
             args = args |> Employee.decode_filter() |> Map.put(:scope, scope)
             Relay.resolve_connection(Chinook.Employee.Loader, :page, args)
           end
-        _args, _resolution -> {:error, :unauthorized}
+
+        _args, _resolution ->
+          {:error, :unauthorized}
       end
     end
 
@@ -157,6 +159,7 @@ defmodule ChinookWeb.Schema do
             args = Map.put(args, :scope, scope)
             Relay.resolve_connection(Chinook.Invoice.Loader, :page, args)
           end
+
         _args, _resolution ->
           {:error, :not_authorized}
       end

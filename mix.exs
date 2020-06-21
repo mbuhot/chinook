@@ -33,7 +33,8 @@ defmodule Chinook.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
-      {:absinthe, github: "mbuhot/absinthe", branch: "fix-introspect-nullable-scalar-input", override: true},
+      {:absinthe,
+       github: "mbuhot/absinthe", branch: "fix-introspect-nullable-scalar-input", override: true},
       {:absinthe_plug, "~> 1.5"},
       {:absinthe_relay, "~> 1.5"},
       {:dataloader, github: "mbuhot/dataloader", branch: "batch-load-queries", override: true},

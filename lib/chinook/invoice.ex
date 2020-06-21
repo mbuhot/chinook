@@ -79,10 +79,14 @@ defmodule Chinook.Invoice do
     end
 
     def filter(queryable, nil), do: queryable
+
     def filter(queryable, filters) do
       Enum.reduce(filters, queryable, fn
-        {:invoice_date, date_filter}, queryable -> filter_datetime(queryable, :invoice_date, date_filter)
-        {:total, total_filter}, queryable -> filter_number(queryable, :total, total_filter)
+        {:invoice_date, date_filter}, queryable ->
+          filter_datetime(queryable, :invoice_date, date_filter)
+
+        {:total, total_filter}, queryable ->
+          filter_number(queryable, :total, total_filter)
       end)
     end
 
@@ -96,10 +100,13 @@ defmodule Chinook.Invoice do
 
     def can?(%Employee{title: "General Manager"}, :read, :invoice), do: {:ok, nil}
     def can?(%Employee{title: "Sales Manager"}, :read, :invoice), do: {:ok, nil}
+
     def can?(%Employee{title: "Sales Support Agent"} = e, :read, :invoice) do
       {:ok, &scope_to_support_rep(&1, e)}
     end
+
     def can?(%Employee{}, :read, :invoice), do: {:error, :not_authorized}
+
     def can?(%Customer{} = c, :read, :invoice) do
       {:ok, &scope_to_customer(&1, c)}
     end

@@ -55,13 +55,23 @@ defmodule Chinook.Track do
     end
 
     def filter(queryable, nil), do: queryable
+
     def filter(queryable, filters) do
       Enum.reduce(filters, queryable, fn
-        {:name, name_filter}, queryable -> filter_string(queryable, :name, name_filter)
-        {:composer, composer_filter}, queryable -> filter_string(queryable, :composer, composer_filter)
-        {:duration, duration_filter}, queryable -> filter_number(queryable, :milliseconds, duration_filter)
-        {:bytes, bytes_filter}, queryable -> filter_number(queryable, :bytes, bytes_filter)
-        {:unit_price, price_filter}, queryable -> filter_number(queryable, :unit_price, price_filter)
+        {:name, name_filter}, queryable ->
+          filter_string(queryable, :name, name_filter)
+
+        {:composer, composer_filter}, queryable ->
+          filter_string(queryable, :composer, composer_filter)
+
+        {:duration, duration_filter}, queryable ->
+          filter_number(queryable, :milliseconds, duration_filter)
+
+        {:bytes, bytes_filter}, queryable ->
+          filter_number(queryable, :bytes, bytes_filter)
+
+        {:unit_price, price_filter}, queryable ->
+          filter_number(queryable, :unit_price, price_filter)
       end)
     end
 
@@ -69,14 +79,14 @@ defmodule Chinook.Track do
     defp run_batch(Track, query, :playlist_id, playlist_ids, repo_opts) do
       groups =
         from(track in query,
-        join: playlist_track in PlaylistTrack,
-        as: :playlist_track,
-        on: track.track_id == playlist_track.track_id
-      )
-      |> batch_by(:playlist_track, :playlist_id, playlist_ids)
-      |> select([playlist, track], {playlist.id, track})
-      |> Repo.all(repo_opts)
-      |> Enum.group_by(fn {playlist_id, _} -> playlist_id end, fn {_, track} -> track end)
+          join: playlist_track in PlaylistTrack,
+          as: :playlist_track,
+          on: track.track_id == playlist_track.track_id
+        )
+        |> batch_by(:playlist_track, :playlist_id, playlist_ids)
+        |> select([playlist, track], {playlist.id, track})
+        |> Repo.all(repo_opts)
+        |> Enum.group_by(fn {playlist_id, _} -> playlist_id end, fn {_, track} -> track end)
 
       for playlist_id <- playlist_ids do
         Map.get(groups, playlist_id, [])

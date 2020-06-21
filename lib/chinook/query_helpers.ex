@@ -67,9 +67,14 @@ defmodule Chinook.QueryHelpers do
   """
   def filter_string(queryable, field, filters) do
     Enum.reduce(filters, queryable, fn
-      {:like, pattern}, queryable ->  where(queryable, [x], like(field(x, ^field), ^pattern))
-      {:starts_with, prefix}, queryable -> where(queryable, [x], like(field(x, ^field), ^"#{prefix}%"))
-      {:ends_with, suffix}, queryable -> where(queryable, [x], like(field(x, ^field), ^"%#{suffix}"))
+      {:like, pattern}, queryable ->
+        where(queryable, [x], like(field(x, ^field), ^pattern))
+
+      {:starts_with, prefix}, queryable ->
+        where(queryable, [x], like(field(x, ^field), ^"#{prefix}%"))
+
+      {:ends_with, suffix}, queryable ->
+        where(queryable, [x], like(field(x, ^field), ^"%#{suffix}"))
     end)
   end
 

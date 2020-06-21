@@ -25,7 +25,6 @@ defmodule ChinookWeb.Schema.Album do
       arg :by, :track_sort_order, default_value: :track_id
       arg :filter, :track_filter, default_value: %{}
 
-
       resolve(fn album, args, %{context: %{loader: loader}} ->
         Relay.resolve_connection_dataloader(
           loader,

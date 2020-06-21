@@ -54,6 +54,7 @@ defmodule ChinookWeb.Schema.Employee do
 
       resolve fn employee, args, %{context: %{loader: loader}} ->
         args = decode_filter(args)
+
         Relay.resolve_connection_dataloader(
           loader,
           Chinook.Employee.Loader,
@@ -72,6 +73,7 @@ defmodule ChinookWeb.Schema.Employee do
         employee, args, %{context: %{loader: loader, current_user: current_user}} ->
           with {:ok, scope} = Chinook.Customer.Auth.can?(current_user, :read, :customer) do
             args = Map.put(args, :scope, scope)
+
             Relay.resolve_connection_dataloader(
               loader,
               Chinook.Customer.Loader,
@@ -81,8 +83,8 @@ defmodule ChinookWeb.Schema.Employee do
             )
           end
 
-      _employee, _args, _resolution ->
-        {:error, :not_authorized}
+        _employee, _args, _resolution ->
+          {:error, :not_authorized}
       end
     end
   end
@@ -93,5 +95,6 @@ defmodule ChinookWeb.Schema.Employee do
 
     put_in(args.filter.reports_to, decoded)
   end
+
   def decode_filter(args), do: args
 end

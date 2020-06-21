@@ -47,6 +47,7 @@ defmodule Chinook.Artist do
     end
 
     def filter(queryable, nil), do: queryable
+
     def filter(queryable, filters) do
       Enum.reduce(filters, queryable, fn
         {:name, name_filter}, queryable -> filter_string(queryable, :name, name_filter)
