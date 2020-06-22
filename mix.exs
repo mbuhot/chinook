@@ -37,7 +37,7 @@ defmodule Chinook.MixProject do
        github: "mbuhot/absinthe", branch: "fix-introspect-nullable-scalar-input", override: true},
       {:absinthe_plug, "~> 1.5"},
       {:absinthe_relay, "~> 1.5"},
-      {:dataloader, github: "mbuhot/dataloader", branch: "batch-load-queries", override: true},
+      {:dataloader, github: "mbuhot/dataloader", branch: "batch-load-queries-2", override: true},
       {:ecto_sql, "~> 3.4"},
       {:floki, ">= 0.0.0", only: :test},
       {:gettext, "~> 0.11"},

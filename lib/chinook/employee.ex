@@ -1,6 +1,7 @@
 defmodule Chinook.Employee do
   use Ecto.Schema
   alias __MODULE__
+  alias Chinook.Customer
 
   @type t :: %__MODULE__{}
 
@@ -23,6 +24,7 @@ defmodule Chinook.Employee do
 
     belongs_to :reports_to, Employee, source: :ReportsTo, references: :employee_id
     has_many :reports, Employee, foreign_key: :reports_to_id, references: :employee_id
+    has_many :customers, Customer, foreign_key: :support_rep_id, references: :employee_id
   end
 
   defmodule Loader do

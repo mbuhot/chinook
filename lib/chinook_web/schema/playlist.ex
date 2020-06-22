@@ -21,13 +21,7 @@ defmodule ChinookWeb.Schema.Playlist do
     connection field :tracks, node_type: :track do
       arg :by, :track_sort_order, default_value: :track_id
       arg :filter, :track_filter, default_value: %{}
-
-      resolve  Relay.connection_dataloader(
-        Chinook.Track.Loader,
-        fn playlist, args, _res ->
-          {Chinook.Track, args, playlist_id: playlist.playlist_id}
-        end
-      )
+      resolve Relay.connection_dataloader(Chinook.Track.Loader)
     end
   end
 end

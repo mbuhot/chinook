@@ -119,15 +119,10 @@ defmodule ChinookWeb.Schema do
       arg :by, :employee_sort_order, default_value: :employee_id
       arg :filter, :employee_filter, default_value: %{}
 
-      resolve fn
-        args, %{context: %{current_user: current_user}} ->
-          with {:ok, scope} <- Chinook.Employee.Auth.can?(current_user, :read, :employee) do
-            args = args |> Employee.decode_filter() |> Map.put(:scope, scope)
-            Relay.resolve_connection(Chinook.Employee.Loader, :page, args)
-          end
-
-        _args, _resolution ->
-          {:error, :unauthorized}
+      middleware &Employee.decode_filter/2
+      middleware Scope, [read: :employee]
+      resolve fn args, _resolution ->
+        Relay.resolve_connection(Chinook.Employee.Loader, :page, args)
       end
     end
 

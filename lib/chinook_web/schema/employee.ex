@@ -56,13 +56,9 @@ defmodule ChinookWeb.Schema.Employee do
       arg :by, :employee_sort_order, default_value: :employee_id
       arg :filter, :employee_filter, default_value: %{}
 
+      middleware :decode_filter
       middleware Scope, [read: :employee]
-      resolve Relay.connection_dataloader(
-        Chinook.Employee.Loader,
-        fn employee, args, _res ->
-          {Chinook.Employee, decode_filter(args), reports_to_id: employee.employee_id}
-        end
-      )
+      resolve Relay.connection_dataloader(Chinook.Employee.Loader)
     end
 
     connection field :customers, node_type: :customer do
@@ -70,21 +66,16 @@ defmodule ChinookWeb.Schema.Employee do
       arg :filter, :customer_filter, default_value: %{}
 
       middleware Scope, [read: :customer]
-      resolve Relay.connection_dataloader(
-        Chinook.Customer.Loader,
-        fn employee, args, _res ->
-          {Chinook.Customer, args, support_rep_id: employee.employee_id}
-        end
-      )
+      resolve Relay.connection_dataloader(Chinook.Customer.Loader)
     end
   end
 
-  def decode_filter(args = %{filter: %{reports_to: report_to_id}}) do
+  def decode_filter(res = %{arguments: %{filter: %{reports_to: report_to_id}}}, _opts) do
     {:ok, %{id: decoded, type: :employee}} =
       Absinthe.Relay.Node.from_global_id(report_to_id, ChinookWeb.Schema)
 
-    put_in(args.filter.reports_to, decoded)
+    put_in(res.arguments.filter.reports_to, decoded)
   end
 
-  def decode_filter(args), do: args
+  def decode_filter(res, _opts), do: res
 end

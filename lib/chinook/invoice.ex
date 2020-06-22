@@ -17,6 +17,7 @@ defmodule Chinook.Invoice do
     field :total, :decimal, source: :Total
     belongs_to :customer, Customer, source: :CustomerId, references: :customer_id
     has_many :line_items, Invoice.Line, foreign_key: :invoice_id, references: :invoice_id
+    has_many :tracks, through: [:line_items, :track]
   end
 
   defmodule Line do

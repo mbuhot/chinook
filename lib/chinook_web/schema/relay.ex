@@ -49,19 +49,37 @@ defmodule ChinookWeb.Relay do
         )
       end
   """
-  def connection_dataloader(source, argsfn) do
+  def connection_dataloader(source, argsfn) when is_function(argsfn) do
     fn parent, args, res = %{context: %{loader: loader}} ->
       args = decode_cursor(args)
-      {schema, args, [{foreign_key, val}]} = argsfn.(parent, args, res)
+      {batch_key, batch_value} =
+         case argsfn.(parent, args, res) do
+          {schema, args, [{foreign_key, val}]} ->
+            {{{:many, schema}, args}, [{foreign_key, val}]}
+
+          {assoc, args, parent} when is_atom(assoc) and is_struct(parent) ->
+            {{assoc, args}, parent}
+        end
 
       loader
-      |> Dataloader.load(source, {{:many, schema}, args}, [{foreign_key, val}])
+      |> Dataloader.load(source, batch_key, batch_value)
       |> Absinthe.Resolution.Helpers.on_load(fn loader ->
         loader
-        |> Dataloader.get(source, {{:many, schema}, args}, [{foreign_key, val}])
+        |> Dataloader.get(source, batch_key, batch_value)
         |> connection_from_slice(args)
       end)
     end
+  end
+
+  @doc """
+  Resolve a connection using dataloader and an Ecto association that
+  matches the name of the field being resolved.
+  """
+  def connection_dataloader(source) do
+    connection_dataloader(source, fn parent, args, res ->
+      resource = res.definition.schema_node.identifier
+      {resource, args, parent}
+    end)
   end
 
   defp decode_cursor(pagination_args) do

@@ -2,6 +2,7 @@ defmodule Chinook.Customer do
   use Ecto.Schema
   alias __MODULE__
   alias Chinook.Employee
+  alias Chinook.Invoice
 
   @type t :: %__MODULE__{}
 
@@ -21,6 +22,8 @@ defmodule Chinook.Customer do
     field :email, :string, source: :Email
 
     belongs_to :support_rep, Employee, source: :SupportRepId, references: :employee_id
+    has_many :invoices, Invoice, foreign_key: :customer_id, references: :customer_id
+    has_many :tracks, through: [:invoices, :tracks]
   end
 
   defmodule Loader do
