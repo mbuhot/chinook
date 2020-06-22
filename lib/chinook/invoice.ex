@@ -98,8 +98,8 @@ defmodule Chinook.Invoice do
     import Ecto.Query
     alias Chinook.Employee
 
-    def can?(%Employee{title: "General Manager"}, :read, :invoice), do: {:ok, nil}
-    def can?(%Employee{title: "Sales Manager"}, :read, :invoice), do: {:ok, nil}
+    def can?(%Employee{title: "General Manager"}, :read, :invoice), do: {:ok, & &1}
+    def can?(%Employee{title: "Sales Manager"}, :read, :invoice), do: {:ok, & &1}
 
     def can?(%Employee{title: "Sales Support Agent"} = e, :read, :invoice) do
       {:ok, &scope_to_support_rep(&1, e)}
