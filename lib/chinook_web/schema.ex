@@ -141,15 +141,9 @@ defmodule ChinookWeb.Schema do
       arg :by, :invoice_sort_order, default_value: :invoice_id
       arg :filter, :invoice_filter, default_value: %{}
 
-      resolve fn
-        args, %{context: %{current_user: current_user}} ->
-          with {:ok, scope} <- Chinook.Invoice.Auth.can?(current_user, :read, :invoice) do
-            args = Map.put(args, :scope, scope)
-            Relay.resolve_connection(Chinook.Invoice.Loader, :page, args)
-          end
-
-        _args, _resolution ->
-          {:error, :not_authorized}
+      middleware Scope, [read: :invoice]
+      resolve fn args, _resolution ->
+        Relay.resolve_connection(Chinook.Invoice.Loader, :page, args)
       end
     end
 
