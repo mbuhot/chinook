@@ -39,8 +39,9 @@ defmodule Chinook.Album do
     def query(args) do
       args = Map.put_new(args, :by, :album_id)
 
-      from(Album, as: :album)
-      |> paginate(:album, args)
+      Album
+      |> from(as: :album)
+      |> paginate(Album, :album, args)
       |> filter(args[:filter])
     end
 

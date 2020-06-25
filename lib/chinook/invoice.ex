@@ -73,8 +73,9 @@ defmodule Chinook.Invoice do
     def query(args) do
       args = Map.put_new(args, :by, :invoice_id)
 
-      from(Invoice, as: :invoice)
-      |> paginate(:invoice, args)
+      Invoice
+      |> from(as: :invoice)
+      |> paginate(Invoice, :invoice, args)
       |> filter(args[:filter])
       |> scope(args[:scope])
     end

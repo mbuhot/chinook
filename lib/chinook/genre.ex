@@ -42,8 +42,9 @@ defmodule Chinook.Genre do
     def query(args) do
       args = Map.put_new(args, :by, :genre_id)
 
-      from(Genre, as: :genre)
-      |> paginate(:genre, args)
+      Genre
+      |> from(as: :genre)
+      |> paginate(Genre, :genre, args)
       |> filter(args[:filter])
     end
 

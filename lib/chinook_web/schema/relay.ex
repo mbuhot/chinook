@@ -52,8 +52,9 @@ defmodule ChinookWeb.Relay do
   def connection_dataloader(source, argsfn) when is_function(argsfn) do
     fn parent, args, res = %{context: %{loader: loader}} ->
       args = decode_cursor(args)
+
       {batch_key, batch_value} =
-         case argsfn.(parent, args, res) do
+        case argsfn.(parent, args, res) do
           {schema, args, [{foreign_key, val}]} ->
             {{{:many, schema}, args}, [{foreign_key, val}]}
 
@@ -91,26 +92,44 @@ defmodule ChinookWeb.Relay do
   defp decode_cursor_arg(pagination_args, arg) do
     case pagination_args do
       %{^arg => cursor} ->
-        [field, value] = cursor |> Base.decode64!() |> String.split(":", parts: 2)
+        %{"by" => by, "at" => at} = cursor |> Base.decode64!() |> Jason.decode!()
+        [{pk, id}] = Enum.map(at, fn {k, v} -> {String.to_existing_atom(k), v} end)
 
         pagination_args
-        |> Map.put(:by, String.to_existing_atom(field))
-        |> Map.put(arg, value)
+        |> Map.put(:by, String.to_existing_atom(by))
+        |> Map.put(arg, [{pk, id}])
 
       _ ->
         pagination_args
     end
   end
 
-  def connection_from_slice(items, pagination_args, opts \\ []) do
-    items = items |> Enum.sort_by(&Map.get(&1, pagination_args.by))
+  def connection_from_slice(items, pagination_args) do
+    items =
+      case pagination_args do
+        %{last: _} -> Enum.reverse(items)
+        _ -> items
+      end
+
+    count = Enum.count(items)
     {edges, first, last} = build_cursors(items, pagination_args)
 
     page_info = %{
       start_cursor: first,
       end_cursor: last,
-      has_previous_page: Keyword.get(opts, :has_previous_page, false),
-      has_next_page: Keyword.get(opts, :has_next_page, false)
+      has_previous_page:
+        case pagination_args do
+          %{after: _} -> true
+          # HACK: might not be a prev page when n == total number
+          %{last: ^count} -> true
+          _ -> false
+        end,
+      has_next_page:
+        case pagination_args do
+          %{before: _} -> true
+          %{first: ^count} -> true
+          _ -> false
+        end
     }
 
     {:ok, %{edges: edges, page_info: page_info}}
@@ -134,7 +153,9 @@ defmodule ChinookWeb.Relay do
   end
 
   defp item_cursor(item, %{by: field}) do
-    "#{field}:#{Map.get(item, field)}" |> Base.encode64()
+    [pk] = item.__struct__.__schema__(:primary_key)
+    cursor = %{by: field, at: %{pk => Map.get(item, pk)}}
+    cursor |> Jason.encode!() |> Base.encode64()
   end
 
   defp build_edge(item, cursor) do

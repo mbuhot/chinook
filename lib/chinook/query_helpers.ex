@@ -15,17 +15,13 @@ defmodule Chinook.QueryHelpers do
         join: track in assoc(playlist_track, :track), as: :track,
         select: track
       )
-      |> paginate(:track, args)
+      |> paginate(Track, :track, args)
   """
-  @spec paginate(Ecto.Queryable.t(), binding :: atom, PagingOptions.t()) :: Ecto.Query.t()
-  def paginate(queryable, binding, args) do
-    {order, limit} = build_paginate_order_limit(binding, args)
-
-    from(queryable,
-      where: ^build_paginate_where(binding, args),
-      order_by: ^order,
-      limit: ^limit
-    )
+  @spec paginate(Ecto.Queryable.t(), module, binding :: atom, PagingOptions.t()) :: Ecto.Query.t()
+  def paginate(query, schema, binding, args) do
+    query
+    |> paginate_where(binding, args)
+    |> paginate_order_limit(schema, binding, args)
   end
 
   @doc """
@@ -102,31 +98,99 @@ defmodule Chinook.QueryHelpers do
     end)
   end
 
-  # Builds the order_by, limit, and where clauses for a paginated query
-  defp build_paginate_order_limit(binding, args = %{by: cursor_field}) do
+  # Adds the order_by, limit, and where clauses for a paginated query
+  defp paginate_order_limit(queryable, schema, binding, args = %{by: cursor_field}) do
+    [pk] = schema.__schema__(:primary_key)
+
     case args do
-      %{last: n} -> {[desc: dynamic([{^binding, x}], field(x, ^cursor_field))], n}
-      %{first: n} -> {[asc: dynamic([{^binding, x}], field(x, ^cursor_field))], n}
-      _ -> {[asc: dynamic([{^binding, x}], field(x, ^cursor_field))], nil}
+      %{last: n} ->
+        queryable
+        |> order_by([{^binding, x}], desc: field(x, ^cursor_field), desc: field(x, ^pk))
+        |> limit(^n)
+
+      %{first: n} ->
+        queryable
+        |> order_by([{^binding, x}], asc: field(x, ^cursor_field), asc: field(x, ^pk))
+        |> limit(^n)
+
+      _ ->
+        queryable
+        |> order_by([{^binding, x}], asc: field(x, ^cursor_field), asc: field(x, ^pk))
     end
   end
 
-  defp build_paginate_where(binding, args = %{by: cursor_field}) do
+  defp paginate_where(queryable, binding, args = %{by: by}) do
     case args do
-      %{after: lower, before: upper} ->
-        dynamic(
-          [{^binding, x}],
-          field(x, ^cursor_field) > ^lower and field(x, ^cursor_field) < ^upper
-        )
+      %{after: [{key_field, lower}], before: [{key_field, upper}]} ->
+        queryable
+        |> add_lower_bound(binding, lower, key_field, by)
+        |> add_upper_bound(binding, upper, key_field, by)
 
-      %{after: lower} ->
-        dynamic([{^binding, x}], field(x, ^cursor_field) > ^lower)
+      %{after: [{key_field, lower}]} ->
+        queryable
+        |> add_lower_bound(binding, lower, key_field, by)
 
-      %{before: upper} ->
-        dynamic([{^binding, x}], field(x, ^cursor_field) < ^upper)
+      %{before: [{key_field, upper}]} ->
+        queryable
+        |> add_upper_bound(binding, upper, key_field, by)
 
       _ ->
-        []
+        queryable
     end
+  end
+
+  defp add_upper_bound(queryable, binding, upper_id, key_field, key_field) do
+    queryable
+    |> where([{^binding, x}], field(x, ^key_field) < ^upper_id)
+  end
+
+  defp add_upper_bound(queryable, binding, upper_id, key_field, sort_field) do
+    agg_query = bound_query(queryable)
+
+    upper_bound =
+      agg_query
+      |> where([{^binding, x}], field(x, ^key_field) == ^upper_id)
+      |> select([{^binding, x}], map(x, ^[key_field, sort_field]))
+
+    queryable
+    |> with_cte("upper_bound", as: ^upper_bound)
+    |> join(:inner, [], "upper_bound", as: :upper_bound)
+    |> where(
+      [{^binding, x}, {:upper_bound, ub}],
+      field(x, ^sort_field) <= field(ub, ^sort_field) and
+        field(x, ^key_field) < field(ub, ^key_field)
+    )
+  end
+
+  defp add_lower_bound(queryable, binding, lower_id, key_field, key_field) do
+    queryable
+    |> where([{^binding, x}], field(x, ^key_field) > ^lower_id)
+  end
+
+  defp add_lower_bound(queryable, binding, lower_id, key_field, sort_field) do
+    agg_query = bound_query(queryable)
+
+    lower_bound =
+      agg_query
+      |> where([{^binding, x}], field(x, ^key_field) == ^lower_id)
+      |> select([{^binding, x}], map(x, ^[key_field, sort_field]))
+
+    queryable
+    |> with_cte("lower_bound", as: ^lower_bound)
+    |> join(:inner, [], "lower_bound", as: :lower_bound)
+    |> where(
+      [{^binding, x}, {:lower_bound, ub}],
+      field(x, ^sort_field) >= field(ub, ^sort_field) and
+        field(x, ^key_field) > field(ub, ^key_field)
+    )
+  end
+
+  defp bound_query(queryable) do
+    queryable
+    |> Ecto.Queryable.to_query()
+    |> exclude(:limit)
+    |> exclude(:offset)
+    |> exclude(:where)
+    |> limit(1)
   end
 end

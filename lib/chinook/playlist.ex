@@ -64,8 +64,9 @@ defmodule Chinook.Playlist do
     def query(args) do
       args = Map.put_new(args, :by, :playlist_id)
 
-      from(Playlist, as: :playlist)
-      |> paginate(:playlist, args)
+      Playlist
+      |> from(as: :playlist)
+      |> paginate(Playlist, :playlist, args)
       |> filter(args[:filter])
     end
 

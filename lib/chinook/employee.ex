@@ -64,8 +64,9 @@ defmodule Chinook.Employee do
     def query(args) do
       args = Map.put_new(args, :by, :employee_id)
 
-      from(Employee, as: :employee)
-      |> paginate(:employee, args)
+      Employee
+      |> from(as: :employee)
+      |> paginate(Employee, :employee, args)
       |> filter(args[:filter])
       |> scope(args[:scope])
     end
@@ -141,12 +142,19 @@ defmodule Chinook.Employee do
       {:error, :not_authorized}
     end
 
-    def scope_to_self_or_manager(queryable, %Employee{employee_id: employee_id, reports_to_id: reports_to}) do
+    def scope_to_self_or_manager(queryable, %Employee{
+          employee_id: employee_id,
+          reports_to_id: reports_to
+        }) do
       queryable
-      |> where([employee: e],
-        e.employee_id == ^employee_id or    # employee can access their own records
-        e.reports_to_id == ^employee_id or  # manager can access employee records
-        e.employee_id == ^reports_to        # employe can access manager records - TODO: limit this access
+      |> where(
+        [employee: e],
+        # employee can access their own records
+        # manager can access employee records
+        # employe can access manager records - TODO: limit this access
+        e.employee_id == ^employee_id or
+          e.reports_to_id == ^employee_id or
+          e.employee_id == ^reports_to
       )
     end
 

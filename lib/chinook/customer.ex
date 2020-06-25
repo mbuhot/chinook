@@ -64,8 +64,9 @@ defmodule Chinook.Customer do
     def query(args) do
       args = Map.put_new(args, :by, :customer_id)
 
-      from(Customer, as: :customer)
-      |> paginate(:customer, args)
+      Customer
+      |> from(as: :customer)
+      |> paginate(Customer, :customer, args)
       |> filter(args[:filter])
       |> scope(args[:scope])
     end

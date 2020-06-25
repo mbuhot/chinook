@@ -41,8 +41,9 @@ defmodule Chinook.Artist do
     def query(args) do
       args = Map.put_new(args, :by, :artist_id)
 
-      from(Artist, as: :artist)
-      |> paginate(:artist, args)
+      Artist
+      |> from(as: :artist)
+      |> paginate(Artist, :artist, args)
       |> filter(args[:filter])
     end
 

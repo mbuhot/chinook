@@ -3,7 +3,7 @@ defmodule ChinookWeb.CursorTest do
 
   @query """
   query {
-    artists(first:2, by:NAME, after:"bmFtZTpBQy9EQw=="){
+    artists(first:2, by:NAME, after:"eyJhdCI6eyJhcnRpc3RfaWQiOjJ9LCJieSI6Im5hbWUifQ=="){
       pageInfo {
         hasPreviousPage
         hasNextPage
@@ -25,23 +25,21 @@ defmodule ChinookWeb.CursorTest do
       "artists" => %{
         "edges" => [
           %{
-            "cursor" => "bmFtZTpBYXJvbiBDb3BsYW5kICYgTG9uZG9uIFN5bXBob255IE9yY2hlc3RyYQ==",
+            "cursor" => "eyJhdCI6eyJhcnRpc3RfaWQiOjI2MH0sImJ5IjoibmFtZSJ9",
             "node" => %{
-              "name" => "Aaron Copland & London Symphony Orchestra"
+              "name" => "Adrian Leaper & Doreen de Feis"
             }
           },
           %{
-            "cursor" => "bmFtZTpBYXJvbiBHb2xkYmVyZw==",
-            "node" => %{
-              "name" => "Aaron Goldberg"
-            }
+            "cursor" => "eyJhdCI6eyJhcnRpc3RfaWQiOjN9LCJieSI6Im5hbWUifQ==",
+            "node" => %{"name" => "Aerosmith"}
           }
         ],
         "pageInfo" => %{
-          "endCursor" => "bmFtZTpBYXJvbiBHb2xkYmVyZw==",
-          "hasNextPage" => false,
-          "hasPreviousPage" => false,
-          "startCursor" => "bmFtZTpBYXJvbiBDb3BsYW5kICYgTG9uZG9uIFN5bXBob255IE9yY2hlc3RyYQ=="
+          "endCursor" => "eyJhdCI6eyJhcnRpc3RfaWQiOjN9LCJieSI6Im5hbWUifQ==",
+          "hasNextPage" => true,
+          "hasPreviousPage" => true,
+          "startCursor" => "eyJhdCI6eyJhcnRpc3RfaWQiOjI2MH0sImJ5IjoibmFtZSJ9"
         }
       }
     }

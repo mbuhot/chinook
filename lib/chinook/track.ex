@@ -49,8 +49,9 @@ defmodule Chinook.Track do
     def query(args) do
       args = Map.put_new(args, :by, :track_id)
 
-      from(Track, as: :track)
-      |> paginate(:track, args)
+      Track
+      |> from(as: :track)
+      |> paginate(Track, :track, args)
       |> filter(args[:filter])
     end
 
