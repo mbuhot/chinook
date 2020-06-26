@@ -3,7 +3,7 @@ defmodule ChinookWeb.CursorTest do
 
   @query """
   query {
-    artists(first:2, by:NAME, after:"eyJhdCI6eyJhcnRpc3RfaWQiOjJ9LCJieSI6Im5hbWUifQ=="){
+    artists(first:2, by:NAME, after:"bmFtZXxhcnRpc3RfaWR8Mg=="){
       pageInfo {
         hasPreviousPage
         hasNextPage
@@ -25,21 +25,21 @@ defmodule ChinookWeb.CursorTest do
       "artists" => %{
         "edges" => [
           %{
-            "cursor" => "eyJhdCI6eyJhcnRpc3RfaWQiOjI2MH0sImJ5IjoibmFtZSJ9",
+            "cursor" => "bmFtZXxhcnRpc3RfaWR8MjYw",
             "node" => %{
               "name" => "Adrian Leaper & Doreen de Feis"
             }
           },
           %{
-            "cursor" => "eyJhdCI6eyJhcnRpc3RfaWQiOjN9LCJieSI6Im5hbWUifQ==",
+            "cursor" => "bmFtZXxhcnRpc3RfaWR8Mw==",
             "node" => %{"name" => "Aerosmith"}
           }
         ],
         "pageInfo" => %{
-          "endCursor" => "eyJhdCI6eyJhcnRpc3RfaWQiOjN9LCJieSI6Im5hbWUifQ==",
+          "endCursor" => "bmFtZXxhcnRpc3RfaWR8Mw==",
           "hasNextPage" => true,
           "hasPreviousPage" => true,
-          "startCursor" => "eyJhdCI6eyJhcnRpc3RfaWQiOjI2MH0sImJ5IjoibmFtZSJ9"
+          "startCursor" => "bmFtZXxhcnRpc3RfaWR8MjYw"
         }
       }
     }

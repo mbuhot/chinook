@@ -92,12 +92,11 @@ defmodule ChinookWeb.Relay do
   defp decode_cursor_arg(pagination_args, arg) do
     case pagination_args do
       %{^arg => cursor} ->
-        %{"by" => by, "at" => at} = cursor |> Base.decode64!() |> Jason.decode!()
-        [{pk, id}] = Enum.map(at, fn {k, v} -> {String.to_existing_atom(k), v} end)
+        [by, pk, id] = cursor |> Base.decode64!() |> String.split("|", parts: 3)
 
         pagination_args
         |> Map.put(:by, String.to_existing_atom(by))
-        |> Map.put(arg, [{pk, id}])
+        |> Map.put(arg, [{String.to_existing_atom(pk), id}])
 
       _ ->
         pagination_args
@@ -160,8 +159,7 @@ defmodule ChinookWeb.Relay do
 
   defp item_cursor(item, %{by: field}) do
     [pk] = item.__struct__.__schema__(:primary_key)
-    cursor = %{by: field, at: %{pk => Map.get(item, pk)}}
-    cursor |> Jason.encode!() |> Base.encode64()
+    "#{field}|#{pk}|#{Map.get(item, pk)}" |> Base.encode64()
   end
 
   defp build_edge(item, cursor) do
