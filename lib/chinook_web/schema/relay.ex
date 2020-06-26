@@ -2,8 +2,10 @@ defmodule ChinookWeb.Relay do
   @doc """
   Resolve an `id` field from the primary key of an Ecto schema
   """
+  @spec id(Ecto.Schema.t(), Absinthe.Resolution.t()) :: any
   def id(x, _resolution) do
-    Map.get(x, hd(x.__struct__.__schema__(:primary_key)))
+    [{_, id}] = Ecto.primary_key!(x)
+    id
   end
 
   @doc """
@@ -23,6 +25,8 @@ defmodule ChinookWeb.Relay do
       end
     end
   """
+  @spec resolve_connection(module, fun :: atom, args :: map) ::
+          {:ok, Absinthe.Relay.Connection.t()}
   def resolve_connection(mod, fun, args) do
     args = decode_cursor(args)
     data = apply(mod, fun, [args])
@@ -35,9 +39,9 @@ defmodule ChinookWeb.Relay do
   Parameters:
 
    - source: The name of the Dataloader source to use
-   - argsfn: callback receiving (parent, arg, resolution) and returning {schema, args, [{foreign_key, value}]}
+   - argsfn: callback receiving (parent, arg, resolution) and returning {schema, args, [{foreign_key, value}]} or {association, args, parent}
 
-  ## Example
+  ## Using explicit foreign key
 
       connection field :invoices, node_type: :invoice do
         arg :by, :invoice_sort_order, default_value: :invoice_id
@@ -47,6 +51,15 @@ defmodule ChinookWeb.Relay do
           Chinook.Loader,
           fn customer, args, _res -> {Chinook.Invoice, args, customer_id: customer.customer_id} end
         )
+      end
+
+  ## Using association
+
+      connection field :invoices, node_type: :invoice do
+        arg :by, :invoice_sort_order, default_value: :invoice_id
+        arg :filter, :invoice_filter, default_value: %{}
+        middleware Scope, [read: :invoice]
+        resolve Relay.connection_dataloader(Chinook.Loader, fn customer, args, _res -> {:invoices, args, customer} end)
       end
   """
   def connection_dataloader(source, argsfn) when is_function(argsfn) do
@@ -75,6 +88,15 @@ defmodule ChinookWeb.Relay do
   @doc """
   Resolve a connection using dataloader and an Ecto association that
   matches the name of the field being resolved.
+
+  # Example
+
+      connection field :invoices, node_type: :invoice do
+        arg :by, :invoice_sort_order, default_value: :invoice_id
+        arg :filter, :invoice_filter, default_value: %{}
+        middleware Scope, [read: :invoice]
+        resolve Relay.connection_dataloader(Chinook.Loader)
+      end
   """
   def connection_dataloader(source) do
     connection_dataloader(source, fn parent, args, res ->
@@ -113,13 +135,13 @@ defmodule ChinookWeb.Relay do
     count = Enum.count(items)
     {edges, first, last} = build_cursors(items, pagination_args)
 
+    # TODO: use a protocol for `row_count` instead of assuming field available
     row_count =
       case items do
         [] -> 0
         [%{row_count: n} | _rest] -> n
       end
 
-    # TODO: protocol for `has_next`
     page_info = %{
       start_cursor: first,
       end_cursor: last,
