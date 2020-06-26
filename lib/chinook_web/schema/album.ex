@@ -19,12 +19,12 @@ defmodule ChinookWeb.Schema.Album do
 
   node object(:album, id_fetcher: &Relay.id/2) do
     field :title, non_null(:string)
-    field :artist, :artist, resolve: dataloader(Chinook.Artist.Loader)
+    field :artist, :artist, resolve: dataloader(Chinook.Loader)
 
     connection field :tracks, node_type: :track do
       arg :by, :track_sort_order, default_value: :track_id
       arg :filter, :track_filter, default_value: %{}
-      resolve Relay.connection_dataloader(Chinook.Track.Loader)
+      resolve Relay.connection_dataloader(Chinook.Loader)
     end
   end
 end

@@ -19,14 +19,6 @@ defmodule Chinook.Artist do
     import Chinook.QueryHelpers
     alias Chinook.Repo
 
-    @spec new() :: Dataloader.Ecto.t()
-    def new() do
-      Dataloader.Ecto.new(
-        Repo,
-        query: fn Artist, args -> query(args) end
-      )
-    end
-
     @spec by_id(integer) :: Chinook.Artist.t()
     def by_id(id) do
       Repo.get(Artist, id)

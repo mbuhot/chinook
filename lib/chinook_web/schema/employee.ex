@@ -48,8 +48,8 @@ defmodule ChinookWeb.Schema.Employee do
     field :email, :string
 
     field :reports_to, :employee do
-      middleware Scope, [read: :employee]
-      resolve dataloader(Chinook.Employee.Loader)
+      middleware Scope, read: :employee
+      resolve dataloader(Chinook.Loader)
     end
 
     connection field :reports, node_type: :employee do
@@ -57,16 +57,16 @@ defmodule ChinookWeb.Schema.Employee do
       arg :filter, :employee_filter, default_value: %{}
 
       middleware :decode_filter
-      middleware Scope, [read: :employee]
-      resolve Relay.connection_dataloader(Chinook.Employee.Loader)
+      middleware Scope, read: :employee
+      resolve Relay.connection_dataloader(Chinook.Loader)
     end
 
     connection field :customers, node_type: :customer do
       arg :by, :customer_sort_order, default_value: :customer_id
       arg :filter, :customer_filter, default_value: %{}
 
-      middleware Scope, [read: :customer]
-      resolve Relay.connection_dataloader(Chinook.Customer.Loader)
+      middleware Scope, read: :customer
+      resolve Relay.connection_dataloader(Chinook.Loader)
     end
   end
 

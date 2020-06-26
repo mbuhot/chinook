@@ -2,7 +2,7 @@ defmodule ChinookWeb.Schema.Customer do
   use Absinthe.Schema.Notation
   use Absinthe.Relay.Schema.Notation, :modern
 
-  import Absinthe.Resolution.Helpers, only: [dataloader: 1] #, dataloader: 2]
+  import Absinthe.Resolution.Helpers, only: [dataloader: 1]
 
   alias ChinookWeb.Relay
   alias ChinookWeb.Scope
@@ -43,21 +43,21 @@ defmodule ChinookWeb.Schema.Customer do
     field :email, :string
 
     field :support_rep, :employee do
-      middleware Scope, [read: :employee]
-      resolve dataloader(Chinook.Employee.Loader)
+      middleware Scope, read: :employee
+      resolve dataloader(Chinook.Loader)
     end
 
     connection field :invoices, node_type: :invoice do
       arg :by, :invoice_sort_order, default_value: :invoice_id
       arg :filter, :invoice_filter, default_value: %{}
-      middleware Scope, [read: :invoice]
-      resolve Relay.connection_dataloader(Chinook.Invoice.Loader)
+      middleware Scope, read: :invoice
+      resolve Relay.connection_dataloader(Chinook.Loader)
     end
 
     connection field :tracks, node_type: :track do
       arg :by, :track_sort_order, default_value: :track_id
       arg :filter, :track_filter, default_value: %{}
-      resolve Relay.connection_dataloader(Chinook.Track.Loader)
+      resolve Relay.connection_dataloader(Chinook.Loader)
     end
   end
 end

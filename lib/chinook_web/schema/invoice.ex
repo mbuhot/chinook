@@ -30,13 +30,13 @@ defmodule ChinookWeb.Schema.Invoice do
     field :total, :decimal
 
     field :customer, :customer do
-      middleware Scope, [read: :customer]
-      resolve dataloader(Chinook.Customer.Loader)
+      middleware Scope, read: :customer
+      resolve dataloader(Chinook.Loader)
     end
 
     # line_items is not a connection here, just a list that can be resolved along with the
     # invoice if needed by the client.
-    field :line_items, list_of(:invoice_line), resolve: dataloader(Chinook.Invoice.Loader)
+    field :line_items, list_of(:invoice_line), resolve: dataloader(Chinook.Loader)
   end
 
   # Using `node object` here for convenience of letting Relay generate the opaque ID
@@ -44,10 +44,11 @@ defmodule ChinookWeb.Schema.Invoice do
   node object(:invoice_line, id_fetcher: &Relay.id/2) do
     field :unit_price, :decimal
     field :quantity, :integer
-    field :track, :track, resolve: dataloader(Chinook.Track.Loader)
+    field :track, :track, resolve: dataloader(Chinook.Loader)
+
     field :invoice, :invoice do
-      middleware Scope, [read: :invoice]
-      resolve dataloader(Chinook.Invoice.Loader)
+      middleware Scope, read: :invoice
+      resolve dataloader(Chinook.Loader)
     end
   end
 end

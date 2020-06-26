@@ -1,8 +1,6 @@
 defmodule ChinookWeb.GraphQLContext do
   @behaviour Plug
 
-  import Plug.Conn
-
   alias Chinook.Customer
   alias Chinook.Employee
 

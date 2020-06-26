@@ -22,7 +22,7 @@ defmodule ChinookWeb.Schema.Genre do
       arg :by, :track_sort_order, default_value: :track_id
       arg :filter, :track_filter, default_value: %{}
 
-      resolve Relay.connection_dataloader(Chinook.Track.Loader)
+      resolve Relay.connection_dataloader(Chinook.Loader)
     end
   end
 end

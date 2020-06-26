@@ -33,15 +33,7 @@ defmodule Chinook.Customer do
 
     alias Chinook.Repo
 
-    @spec new() :: Dataloader.Ecto.t()
-    def new() do
-      Dataloader.Ecto.new(
-        Chinook.Repo,
-        query: fn Customer, args -> query(args) end
-      )
-    end
-
-    @spec by_id(integer, Ecto.Query.dynamic()) :: Customer.t()
+    @spec by_id(integer, scope :: (Ecto.Queryable.t() -> Ecto.Queryable.t())) :: Customer.t()
     def by_id(id, scope) do
       %{scope: scope}
       |> query()

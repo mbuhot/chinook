@@ -110,8 +110,11 @@ defmodule ChinookWeb.Schema do
       arg :by, :customer_sort_order, default_value: :customer_id
       arg :filter, :customer_filter, default_value: %{}
 
-      middleware Scope, [read: :customer]
-      resolve fn args, _res -> Relay.resolve_connection(Chinook.Customer.Loader, :page, args) end
+      middleware Scope, read: :customer
+
+      resolve fn args, _res ->
+        Relay.resolve_connection(Chinook.Customer.Loader, :page, args)
+      end
     end
 
     @desc "Paginate employees"
@@ -120,7 +123,8 @@ defmodule ChinookWeb.Schema do
       arg :filter, :employee_filter, default_value: %{}
 
       middleware &Employee.decode_filter/2
-      middleware Scope, [read: :employee]
+      middleware Scope, read: :employee
+
       resolve fn args, _resolution ->
         Relay.resolve_connection(Chinook.Employee.Loader, :page, args)
       end
@@ -141,7 +145,8 @@ defmodule ChinookWeb.Schema do
       arg :by, :invoice_sort_order, default_value: :invoice_id
       arg :filter, :invoice_filter, default_value: %{}
 
-      middleware Scope, [read: :invoice]
+      middleware Scope, read: :invoice
+
       resolve fn args, _resolution ->
         Relay.resolve_connection(Chinook.Invoice.Loader, :page, args)
       end

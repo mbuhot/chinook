@@ -29,17 +29,7 @@ defmodule Chinook.Track do
   defmodule Loader do
     import Ecto.Query
     import Chinook.QueryHelpers
-    alias Chinook.PlaylistTrack
     alias Chinook.Repo
-
-    @spec new() :: Dataloader.Ecto.t()
-    def new() do
-      Dataloader.Ecto.new(
-        Chinook.Repo,
-        query: fn Track, args -> query(args) end,
-        run_batch: &run_batch/5
-      )
-    end
 
     @spec by_id(integer) :: Track.t()
     def by_id(id) do
@@ -77,27 +67,28 @@ defmodule Chinook.Track do
       end)
     end
 
-    # Handle playlist batches specially due to the join table
-    defp run_batch(Track, query, :playlist_id, playlist_ids, repo_opts) do
-      groups =
-        from(track in query,
-          join: playlist_track in PlaylistTrack,
-          as: :playlist_track,
-          on: track.track_id == playlist_track.track_id
-        )
-        |> batch_by(:playlist_track, :playlist_id, playlist_ids)
-        |> select([playlist, track], {playlist.id, track})
-        |> Repo.all(repo_opts)
-        |> Enum.group_by(fn {playlist_id, _} -> playlist_id end, fn {_, track} -> track end)
+    # This code no longer needed - Dataloader.Ecto can take care of it
+    # # Handle playlist batches specially due to the join table
+    # defp run_batch(Track, query, :playlist_id, playlist_ids, repo_opts) do
+    #   groups =
+    #     from(track in query,
+    #       join: playlist_track in PlaylistTrack,
+    #       as: :playlist_track,
+    #       on: track.track_id == playlist_track.track_id
+    #     )
+    #     |> batch_by(:playlist_track, :playlist_id, playlist_ids)
+    #     |> select([playlist, track], {playlist.id, track})
+    #     |> Repo.all(repo_opts)
+    #     |> Enum.group_by(fn {playlist_id, _} -> playlist_id end, fn {_, track} -> track end)
 
-      for playlist_id <- playlist_ids do
-        Map.get(groups, playlist_id, [])
-      end
-    end
+    #   for playlist_id <- playlist_ids do
+    #     Map.get(groups, playlist_id, [])
+    #   end
+    # end
 
-    # album/genre batches can use the default run_batch
-    defp run_batch(Track, query, key_field, inputs, repo_opts) do
-      Dataloader.Ecto.run_batch(Repo, Track, query, key_field, inputs, repo_opts)
-    end
+    # # album/genre batches can use the default run_batch
+    # defp run_batch(Track, query, key_field, inputs, repo_opts) do
+    #   Dataloader.Ecto.run_batch(Repo, Track, query, key_field, inputs, repo_opts)
+    # end
   end
 end

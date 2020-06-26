@@ -41,14 +41,6 @@ defmodule Chinook.Playlist do
 
     alias Chinook.Repo
 
-    @spec new() :: Dataloader.Ecto.t()
-    def new() do
-      Dataloader.Ecto.new(
-        Repo,
-        query: fn Playlist, args -> query(args) end
-      )
-    end
-
     @spec by_id(integer) :: Playlist.t()
     def by_id(id) do
       Repo.get(Playlist, id)

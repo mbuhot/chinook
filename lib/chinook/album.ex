@@ -22,14 +22,6 @@ defmodule Chinook.Album do
 
     alias Chinook.Repo
 
-    @spec new() :: Dataloader.Ecto.t()
-    def new() do
-      Dataloader.Ecto.new(
-        Chinook.Repo,
-        query: fn Album, args -> query(args) end
-      )
-    end
-
     @spec by_id(integer) :: Album.t()
     def by_id(id) do
       Repo.get(Album, id)

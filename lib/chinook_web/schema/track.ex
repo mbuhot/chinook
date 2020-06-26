@@ -33,7 +33,7 @@ defmodule ChinookWeb.Schema.Track do
     field :bytes, non_null(:integer)
     field :unit_price, non_null(:decimal)
 
-    field :genre, :genre, resolve: dataloader(Chinook.Genre.Loader)
-    field :album, :album, resolve: dataloader(Chinook.Album.Loader)
+    field :genre, :genre, resolve: dataloader(Chinook.Loader)
+    field :album, :album, resolve: dataloader(Chinook.Loader)
   end
 end

@@ -44,7 +44,7 @@ defmodule ChinookWeb.Relay do
         arg :filter, :invoice_filter, default_value: %{}
         middleware Scope, [read: :invoice]
         resolve Relay.connection_dataloader(
-          Chinook.Invoice.Loader,
+          Chinook.Loader,
           fn customer, args, _res -> {Chinook.Invoice, args, customer_id: customer.customer_id} end
         )
       end
