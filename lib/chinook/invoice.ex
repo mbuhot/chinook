@@ -15,6 +15,8 @@ defmodule Chinook.Invoice do
     field :billing_country, :string, source: :BillingCountry
     field :billing_postal_code, :string, source: :BillingPostalCode
     field :total, :decimal, source: :Total
+    field :row_count, :integer, virtual: true
+
     belongs_to :customer, Customer, source: :CustomerId, references: :customer_id
     has_many :line_items, Invoice.Line, foreign_key: :invoice_id, references: :invoice_id
     has_many :tracks, through: [:line_items, :track]

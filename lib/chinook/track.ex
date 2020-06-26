@@ -15,6 +15,7 @@ defmodule Chinook.Track do
     field :milliseconds, :integer, source: :Milliseconds
     field :bytes, :integer, source: :Bytes
     field :unit_price, :decimal, source: :UnitPrice
+    field :row_count, :integer, virtual: true
 
     belongs_to :media_type, MediaType,
       foreign_key: :media_type_id,

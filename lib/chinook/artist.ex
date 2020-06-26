@@ -9,6 +9,8 @@ defmodule Chinook.Artist do
 
   schema "Artist" do
     field(:name, :string, source: :Name)
+    field :row_count, :integer, virtual: true
+
     has_many(:albums, Album, foreign_key: :artist_id)
   end
 

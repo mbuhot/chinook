@@ -9,6 +9,8 @@ defmodule Chinook.Genre do
 
   schema "Genre" do
     field(:name, :string, source: :Name)
+    field :row_count, :integer, virtual: true
+
     has_many(:tracks, Track, foreign_key: :genre_id)
   end
 

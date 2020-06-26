@@ -22,6 +22,7 @@ defmodule Chinook.QueryHelpers do
     query
     |> paginate_where(binding, args)
     |> paginate_order_limit(schema, binding, args)
+    |> select_row_count(args)
   end
 
   @doc """
@@ -192,5 +193,18 @@ defmodule Chinook.QueryHelpers do
     |> exclude(:offset)
     |> exclude(:where)
     |> limit(1)
+  end
+
+  defp select_row_count(queryable, args) do
+    limit = args[:first] || args[:last]
+
+    case limit do
+      nil ->
+        queryable
+
+      _ ->
+        queryable
+        |> select([x], %{x | row_count: count() |> over()})
+    end
   end
 end

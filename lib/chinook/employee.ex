@@ -21,6 +21,7 @@ defmodule Chinook.Employee do
     field :phone, :string, source: :Phone
     field :fax, :string, source: :Fax
     field :email, :string, source: :Email
+    field :row_count, :integer, virtual: true
 
     belongs_to :reports_to, Employee, source: :ReportsTo, references: :employee_id
     has_many :reports, Employee, foreign_key: :reports_to_id, references: :employee_id

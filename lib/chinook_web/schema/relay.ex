@@ -114,20 +114,26 @@ defmodule ChinookWeb.Relay do
     count = Enum.count(items)
     {edges, first, last} = build_cursors(items, pagination_args)
 
+    row_count =
+      case items do
+        [] -> 0
+        [%{row_count: n} | _rest] -> n
+      end
+
+    # TODO: protocol for `has_next`
     page_info = %{
       start_cursor: first,
       end_cursor: last,
       has_previous_page:
         case pagination_args do
           %{after: _} -> true
-          # HACK: might not be a prev page when n == total number
-          %{last: ^count} -> true
+          %{last: ^count} -> row_count > count
           _ -> false
         end,
       has_next_page:
         case pagination_args do
           %{before: _} -> true
-          %{first: ^count} -> true
+          %{first: ^count} -> row_count > count
           _ -> false
         end
     }

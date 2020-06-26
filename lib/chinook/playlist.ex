@@ -28,6 +28,7 @@ defmodule Chinook.Playlist do
 
   schema "Playlist" do
     field :name, :string, source: :Name
+    field :row_count, :integer, virtual: true
 
     many_to_many :tracks, Track,
       join_through: PlaylistTrack,

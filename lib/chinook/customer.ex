@@ -20,6 +20,7 @@ defmodule Chinook.Customer do
     field :phone, :string, source: :Phone
     field :fax, :string, source: :Fax
     field :email, :string, source: :Email
+    field :row_count, :integer, virtual: true
 
     belongs_to :support_rep, Employee, source: :SupportRepId, references: :employee_id
     has_many :invoices, Invoice, foreign_key: :customer_id, references: :customer_id
