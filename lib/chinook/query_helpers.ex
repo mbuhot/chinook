@@ -158,8 +158,9 @@ defmodule Chinook.QueryHelpers do
     |> join(:inner, [], "upper_bound", as: :upper_bound)
     |> where(
       [{^binding, x}, {:upper_bound, ub}],
-      field(x, ^sort_field) <= field(ub, ^sort_field) and
-        field(x, ^key_field) < field(ub, ^key_field)
+      field(x, ^sort_field) < field(ub, ^sort_field) or
+        (field(x, ^sort_field) == field(ub, ^sort_field) and
+           field(x, ^key_field) < field(ub, ^key_field))
     )
   end
 
@@ -181,8 +182,9 @@ defmodule Chinook.QueryHelpers do
     |> join(:inner, [], "lower_bound", as: :lower_bound)
     |> where(
       [{^binding, x}, {:lower_bound, ub}],
-      field(x, ^sort_field) >= field(ub, ^sort_field) and
-        field(x, ^key_field) > field(ub, ^key_field)
+      field(x, ^sort_field) > field(ub, ^sort_field) or
+        (field(x, ^sort_field) == field(ub, ^sort_field) and
+           field(x, ^key_field) > field(ub, ^key_field))
     )
   end
 
