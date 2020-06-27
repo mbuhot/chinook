@@ -3,6 +3,7 @@ defmodule ChinookWeb.Schema.Artist do
   use Absinthe.Relay.Schema.Notation, :modern
 
   alias ChinookWeb.Relay
+  alias ChinookWeb.Scope
 
   @desc "Artist sort order"
   enum :artist_sort_order do
@@ -21,6 +22,20 @@ defmodule ChinookWeb.Schema.Artist do
     connection field(:albums, node_type: :album) do
       arg :by, :album_sort_order, default_value: :album_id
       arg :filter, :album_filter, default_value: %{}
+      resolve Relay.connection_dataloader(Chinook.Loader)
+    end
+
+    connection field(:tracks, node_type: :track) do
+      arg :by, :track_sort_order, default_value: :track_id
+      arg :filter, :track_filter, default_value: %{}
+      resolve Relay.connection_dataloader(Chinook.Loader)
+    end
+
+    connection field(:fans, node_type: :customer) do
+      arg :by, :customer_sort_order, default_value: :customer_id
+      arg :filter, :customer_filter, default_value: %{}
+
+      middleware Scope, read: :customer
       resolve Relay.connection_dataloader(Chinook.Loader)
     end
   end

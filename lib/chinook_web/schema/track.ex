@@ -5,6 +5,7 @@ defmodule ChinookWeb.Schema.Track do
   import Absinthe.Resolution.Helpers, only: [dataloader: 1]
 
   alias ChinookWeb.Relay
+  alias ChinookWeb.Scope
 
   @desc "Track sort order"
   enum :track_sort_order do
@@ -35,5 +36,13 @@ defmodule ChinookWeb.Schema.Track do
 
     field :genre, :genre, resolve: dataloader(Chinook.Loader)
     field :album, :album, resolve: dataloader(Chinook.Loader)
+
+    connection field :purchasers, node_type: :customer do
+      arg :by, :customer_sort_order, default_value: :customer_id
+      arg :filter, :customer_filter, default_value: %{}
+
+      middleware Scope, read: :customer
+      resolve Relay.connection_dataloader(Chinook.Loader)
+    end
   end
 end

@@ -1,4 +1,4 @@
-defmodule ChinookWeb.NodeTest do
+defmodule ChinookWeb.ArtistNodeTest do
   use Chinook.DataCase, async: true
 
   @query """

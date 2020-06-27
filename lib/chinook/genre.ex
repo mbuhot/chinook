@@ -18,20 +18,6 @@ defmodule Chinook.Genre do
     import Ecto.Query
     import Chinook.QueryHelpers
 
-    alias Chinook.Repo
-
-    @spec by_id(integer) :: Chinook.Genre.t()
-    def by_id(id) do
-      Repo.get(Genre, id)
-    end
-
-    @spec page(args :: PagingOptions.t()) :: [Genre.t()]
-    def page(args) do
-      args
-      |> query()
-      |> Repo.all()
-    end
-
     @spec query(PagingOptions.t()) :: Ecto.Query.t()
     def query(args) do
       args = Map.put_new(args, :by, :genre_id)

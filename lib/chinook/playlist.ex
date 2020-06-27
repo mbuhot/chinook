@@ -39,20 +39,6 @@ defmodule Chinook.Playlist do
     import Ecto.Query
     import Chinook.QueryHelpers
 
-    alias Chinook.Repo
-
-    @spec by_id(integer) :: Playlist.t()
-    def by_id(id) do
-      Repo.get(Playlist, id)
-    end
-
-    @spec page(args :: PagingOptions.t()) :: [Playlist.t()]
-    def page(args) do
-      args
-      |> query()
-      |> Repo.all()
-    end
-
     @spec query(PagingOptions.t()) :: Ecto.Query.t()
     def query(args) do
       args = Map.put_new(args, :by, :playlist_id)

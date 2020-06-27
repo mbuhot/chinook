@@ -12,24 +12,13 @@ defmodule Chinook.Artist do
     field :row_count, :integer, virtual: true
 
     has_many(:albums, Album, foreign_key: :artist_id)
+    has_many(:tracks, through: [:albums, :tracks])
+    has_many(:fans, through: [:tracks, :purchasers])
   end
 
   defmodule Loader do
     import Ecto.Query
     import Chinook.QueryHelpers
-    alias Chinook.Repo
-
-    @spec by_id(integer) :: Chinook.Artist.t()
-    def by_id(id) do
-      Repo.get(Artist, id)
-    end
-
-    @spec page(args :: PagingOptions.t()) :: [Artist.t()]
-    def page(args) do
-      args
-      |> query()
-      |> Repo.all()
-    end
 
     @spec query(PagingOptions.t()) :: Ecto.Query.t()
     def query(args) do

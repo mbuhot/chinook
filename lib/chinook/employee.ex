@@ -32,27 +32,6 @@ defmodule Chinook.Employee do
     import Ecto.Query
     import Chinook.QueryHelpers
 
-    alias Chinook.Repo
-
-    @spec by_id(integer, (Ecto.Queryable.t() -> Ecto.Queryable.t())) :: Employee.t()
-    def by_id(id, scope) do
-      %{scope: scope}
-      |> query()
-      |> where([employee: e], e.employee_id == ^id)
-      |> Repo.one()
-    end
-
-    def by_email(email) do
-      Repo.get_by(Employee, email: email)
-    end
-
-    @spec page(args :: PagingOptions.t()) :: [Employee.t()]
-    def page(args) do
-      args
-      |> query()
-      |> Repo.all()
-    end
-
     @spec query(PagingOptions.t()) :: Ecto.Query.t()
     def query(args) do
       args = Map.put_new(args, :by, :employee_id)
@@ -138,7 +117,11 @@ defmodule Chinook.Employee do
   defmodule Auth do
     alias Chinook.{Customer, Employee}
 
-    @type scope :: :all
+    @type scope ::
+            :all
+            | [employee_id: integer, reports_to_id: integer()]
+            | [employee_id: integer]
+
     @type user :: Employee.t() | Customer.t()
     @type action :: :read
     @type resource :: :employee

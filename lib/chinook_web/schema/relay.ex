@@ -8,11 +8,22 @@ defmodule ChinookWeb.Relay do
     id
   end
 
+  def node_dataloader(loader, source, schema, id) do
+    loader
+    |> Dataloader.load(source, schema, id)
+    |> Absinthe.Resolution.Helpers.on_load(fn loader ->
+      result = Dataloader.get(loader, source, schema, id)
+      {:ok, result}
+    end)
+  end
+
   @doc """
-  Resolve a Relay connection
+  Resolve a Relay connection using a query function
 
   Note this should only be used for top-level fields in the schema.
   Connection fields defined within object types should use `connection_dataloader`.
+
+  Requires a `:repo` in the resolution context to use for executing the query.
 
   ## Example
 
@@ -20,17 +31,15 @@ defmodule ChinookWeb.Relay do
       arg :by, :artist_sort_order, default_value: :artist_id
       arg :filter, :artist_filter, default_value: %{}
 
-      resolve fn args, _resolution ->
-        Relay.resolve_connection(Artist.Resolvers, :page, args)
-      end
+      resolve Relay.connection_from_query(&Artist.Loader.query/1, args)
     end
   """
-  @spec resolve_connection(module, fun :: atom, args :: map) ::
-          {:ok, Absinthe.Relay.Connection.t()}
-  def resolve_connection(mod, fun, args) do
-    args = decode_cursor(args)
-    data = apply(mod, fun, [args])
-    connection_from_slice(data, args)
+  def connection_from_query(queryfn) do
+    fn args, %{context: %{repo: repo}} ->
+      args = decode_cursor(args)
+      data = args |> queryfn.() |> repo.all()
+      connection_from_slice(data, args)
+    end
   end
 
   @doc """

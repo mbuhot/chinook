@@ -24,17 +24,13 @@ defmodule Chinook.Track do
 
     belongs_to :genre, Genre, foreign_key: :genre_id, references: :genre_id, source: :GenreId
     belongs_to :album, Album, foreign_key: :album_id, references: :album_id, source: :AlbumId
+    has_many :invoice_lines, Chinook.Invoice.Line, foreign_key: :track_id, references: :track_id
+    has_many :purchasers, through: [:invoice_lines, :invoice, :customer]
   end
 
   defmodule Loader do
     import Ecto.Query
     import Chinook.QueryHelpers
-    alias Chinook.Repo
-
-    @spec by_id(integer) :: Track.t()
-    def by_id(id) do
-      Repo.get(Track, id)
-    end
 
     @spec query(PagingOptions.t()) :: Ecto.Query.t()
     def query(args) do

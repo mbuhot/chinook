@@ -1,9 +1,6 @@
 defmodule ChinookWeb.GraphQLContext do
   @behaviour Plug
 
-  alias Chinook.Customer
-  alias Chinook.Employee
-
   def init(opts), do: opts
 
   def call(conn, _) do
@@ -15,12 +12,9 @@ defmodule ChinookWeb.GraphQLContext do
   Return the current user context based on the authorization header
   """
   def build_context(conn) do
-    with {user, _pass} <- Plug.BasicAuth.parse_basic_auth(conn) do
-      current_user =
-        Employee.Loader.by_email(user) ||
-          Customer.Loader.by_email(user)
-
-      %{current_user: current_user}
+    with {email, pass} <- Plug.BasicAuth.parse_basic_auth(conn),
+         {:ok, user} <-  Chinook.User.authenticate(email, pass) do
+      %{current_user: user}
     else
       :error -> %{}
     end

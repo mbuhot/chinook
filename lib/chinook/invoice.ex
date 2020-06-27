@@ -43,22 +43,6 @@ defmodule Chinook.Invoice do
     import Chinook.QueryHelpers
 
     alias Chinook.Employee
-    alias Chinook.Repo
-
-    @spec by_id(integer, (Ecto.Queryable.t() -> Ecto.Queryable.t())) :: Chinook.Invoice.t()
-    def by_id(id, scope) do
-      %{scope: scope}
-      |> query()
-      |> where([i], i.invoice_id == ^id)
-      |> Repo.one()
-    end
-
-    @spec page(args :: PagingOptions.t()) :: [Invoice.t()]
-    def page(args) do
-      args
-      |> query()
-      |> Repo.all()
-    end
 
     @spec query(PagingOptions.t()) :: Ecto.Query.t()
     def query(args) do

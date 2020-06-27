@@ -31,28 +31,6 @@ defmodule Chinook.Customer do
     import Ecto.Query
     import Chinook.QueryHelpers
 
-    alias Chinook.Repo
-
-    @spec by_id(integer, scope :: (Ecto.Queryable.t() -> Ecto.Queryable.t())) :: Customer.t()
-    def by_id(id, scope) do
-      %{scope: scope}
-      |> query()
-      |> where([customer: c], c.customer_id == ^id)
-      |> Repo.one()
-    end
-
-    @spec by_email(String.t()) :: Customer.t() | nil
-    def by_email(email) do
-      Repo.get_by(Customer, email: email)
-    end
-
-    @spec page(args :: PagingOptions.t()) :: [Customer.t()]
-    def page(args) do
-      args
-      |> query()
-      |> Repo.all()
-    end
-
     @spec query(PagingOptions.t()) :: Ecto.Query.t()
     def query(args) do
       args = Map.put_new(args, :by, :customer_id)

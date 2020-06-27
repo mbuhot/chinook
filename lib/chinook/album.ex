@@ -20,13 +20,6 @@ defmodule Chinook.Album do
     import Ecto.Query
     import Chinook.QueryHelpers
 
-    alias Chinook.Repo
-
-    @spec by_id(integer) :: Album.t()
-    def by_id(id) do
-      Repo.get(Album, id)
-    end
-
     @spec query(PagingOptions.t()) :: Ecto.Query.t()
     def query(args) do
       args = Map.put_new(args, :by, :album_id)

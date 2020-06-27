@@ -15,8 +15,9 @@ defmodule ChinookWeb.Schema do
   alias ChinookWeb.Scope
 
   def context(ctx) do
-    loader = Chinook.Loader.data()
-    Map.put(ctx, :loader, loader)
+    ctx
+    |> Map.put(:loader, Chinook.Loader.data())
+    |> Map.put(:repo, Chinook.Repo)
   end
 
   def plugins do
@@ -60,38 +61,35 @@ defmodule ChinookWeb.Schema do
   query do
     node field do
       resolve(fn
-        %{type: :album, id: id}, _resolution ->
-          {:ok, Chinook.Album.Loader.by_id(id)}
+        %{type: :album, id: id}, %{context: %{loader: loader}} ->
+          Relay.node_dataloader(loader, Chinook.Loader, Chinook.Album, id)
 
-        %{type: :artist, id: id}, _resolution ->
-          {:ok, Chinook.Artist.Loader.by_id(id)}
+        %{type: :artist, id: id}, %{context: %{loader: loader}} ->
+          Relay.node_dataloader(loader, Chinook.Loader, Chinook.Artist, id)
 
-        %{type: :customer, id: id}, %{context: %{current_user: current_user}} ->
+        %{type: :customer, id: id}, %{context: %{current_user: current_user, loader: loader}} ->
           with {:ok, scope} <- Chinook.Customer.Auth.can?(current_user, :read, :customer) do
-            {:ok, Chinook.Customer.Loader.by_id(id, scope)}
+            Relay.node_dataloader(loader, Chinook.Loader, {Chinook.Customer, %{scope: scope}}, id)
           end
 
-        %{type: :customer}, _resolution ->
-          {:error, :not_authorized}
-
-        %{type: :employee, id: id}, %{context: %{current_user: current_user}} ->
+        %{type: :employee, id: id}, %{context: %{current_user: current_user, loader: loader}} ->
           with {:ok, scope} <- Chinook.Employee.Auth.can?(current_user, :read, :employee) do
-            {:ok, Chinook.Employee.Loader.by_id(id, scope)}
+            Relay.node_dataloader(loader, Chinook.Loader, {Chinook.Employee, %{scope: scope}}, id)
           end
 
-        %{type: :genre, id: id}, _resolution ->
-          {:ok, Chinook.Genre.Loader.by_id(id)}
+        %{type: :genre, id: id}, %{context: %{loader: loader}} ->
+          Relay.node_dataloader(loader, Chinook.Loader, Chinook.Genre, id)
 
-        %{type: :invoice, id: id}, %{context: %{current_user: current_user}} ->
+        %{type: :invoice, id: id}, %{context: %{current_user: current_user, loader: loader}} ->
           with {:ok, scope} <- Chinook.Invoice.Auth.can?(current_user, :read, :invoice) do
-            {:ok, Chinook.Invoice.Loader.by_id(id, scope)}
+            Relay.node_dataloader(loader, Chinook.Loader, {Chinook.Invoice, %{scope: scope}}, id)
           end
 
-        %{type: :playlist, id: id}, _resolution ->
-          {:ok, Chinook.Playlist.Loader.by_id(id)}
+        %{type: :playlist, id: id}, %{context: %{loader: loader}} ->
+          Relay.node_dataloader(loader, Chinook.Loader, Chinook.Playlist, id)
 
-        %{type: :track, id: id}, _resolution ->
-          {:ok, Chinook.Track.Loader.by_id(id)}
+        %{type: :track, id: id}, %{context: %{loader: loader}} ->
+          Relay.node_dataloader(loader, Chinook.Loader, Chinook.Track, id)
       end)
     end
 
@@ -100,9 +98,7 @@ defmodule ChinookWeb.Schema do
       arg :by, :artist_sort_order, default_value: :artist_id
       arg :filter, :artist_filter, default_value: %{}
 
-      resolve fn args, _resolution ->
-        Relay.resolve_connection(Chinook.Artist.Loader, :page, args)
-      end
+      resolve Relay.connection_from_query(&Chinook.Artist.Loader.query/1)
     end
 
     @desc "Paginate customers"
@@ -111,10 +107,7 @@ defmodule ChinookWeb.Schema do
       arg :filter, :customer_filter, default_value: %{}
 
       middleware Scope, read: :customer
-
-      resolve fn args, _res ->
-        Relay.resolve_connection(Chinook.Customer.Loader, :page, args)
-      end
+      resolve Relay.connection_from_query(&Chinook.Customer.Loader.query/1)
     end
 
     @desc "Paginate employees"
@@ -124,10 +117,7 @@ defmodule ChinookWeb.Schema do
 
       middleware &Employee.decode_filter/2
       middleware Scope, read: :employee
-
-      resolve fn args, _resolution ->
-        Relay.resolve_connection(Chinook.Employee.Loader, :page, args)
-      end
+      resolve Relay.connection_from_query(&Chinook.Employee.Loader.query/1)
     end
 
     @desc "Paginate genres"
@@ -135,9 +125,7 @@ defmodule ChinookWeb.Schema do
       arg :by, :genre_sort_order, default_value: :genre_id
       arg :filter, :genre_filter, default_value: %{}
 
-      resolve fn args, _resolution ->
-        Relay.resolve_connection(Chinook.Genre.Loader, :page, args)
-      end
+      resolve Relay.connection_from_query(&Chinook.Genre.Loader.query/1)
     end
 
     @desc "Paginate invoices"
@@ -146,10 +134,7 @@ defmodule ChinookWeb.Schema do
       arg :filter, :invoice_filter, default_value: %{}
 
       middleware Scope, read: :invoice
-
-      resolve fn args, _resolution ->
-        Relay.resolve_connection(Chinook.Invoice.Loader, :page, args)
-      end
+      resolve Relay.connection_from_query(&Chinook.Invoice.Loader.query/1)
     end
 
     @desc "Paginate playlists"
@@ -157,9 +142,7 @@ defmodule ChinookWeb.Schema do
       arg :by, :playlist_sort_order, default_value: :playlist_id
       arg :filter, :playlist_filter, default_value: %{}
 
-      resolve fn args, _resolution ->
-        Relay.resolve_connection(Chinook.Playlist.Loader, :page, args)
-      end
+      resolve Relay.connection_from_query(&Chinook.Playlist.Loader.query/1)
     end
   end
 end
