@@ -106,34 +106,47 @@ defmodule Chinook.Customer do
       end)
     end
 
-    def scope(queryable, nil), do: queryable |> where(false)
-    def scope(queryable, scope) when is_function(scope), do: scope.(queryable)
-  end
+    @spec scope(Ecto.Queryable.t(), Customer.Auth.scope()) :: Ecto.Queryable.t()
+    def scope(queryable, :all), do: queryable
 
-  defmodule Auth do
-    import Ecto.Query
-
-    def can?(%Employee{title: "General Manager"}, :read, :customer), do: {:ok, & &1}
-    def can?(%Employee{title: "Sales Manager"}, :read, :customer), do: {:ok, & &1}
-
-    def can?(%Employee{title: "Sales Support Agent"} = e, :read, :customer) do
-      {:ok, &scope_to_support_rep(&1, e)}
-    end
-
-    def can?(%Employee{}, :read, :customer), do: {:error, :not_authorized}
-
-    def can?(%Customer{} = c, :read, :customer) do
-      {:ok, &scope_to_customer(&1, c)}
-    end
-
-    def scope_to_customer(queryable, %Customer{customer_id: customer_id}) do
+    def scope(queryable, customer_id: customer_id) do
       queryable
       |> where([customer: c], c.customer_id == ^customer_id)
     end
 
-    def scope_to_support_rep(queryable, %Employee{employee_id: employee_id}) do
+    def scope(queryable, support_rep_id: employee_id) do
       queryable
       |> where([customer: c], c.support_rep_id == ^employee_id)
+    end
+
+    def scope(queryable, _), do: queryable |> where(false)
+  end
+
+  defmodule Auth do
+    @type scope :: :all | [support_rep_id: integer()] | [customer_id: integer()]
+    @type user :: Employee.t() | Customer.t()
+    @type action :: :read
+    @type resource :: :customer
+
+    @spec can?(user, action, resource) :: {:ok, scope} | {:error, atom}
+    def can?(%Employee{title: "General Manager"}, :read, :customer) do
+      {:ok, :all}
+    end
+
+    def can?(%Employee{title: "Sales Manager"}, :read, :customer) do
+      {:ok, :all}
+    end
+
+    def can?(%Employee{title: "Sales Support Agent"} = e, :read, :customer) do
+      {:ok, [support_rep_id: e.employee_id]}
+    end
+
+    def can?(%Employee{}, :read, :customer) do
+      {:error, :not_authorized}
+    end
+
+    def can?(%Customer{} = c, :read, :customer) do
+      {:ok, [customer_id: c.customer_id]}
     end
   end
 end

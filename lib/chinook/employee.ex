@@ -112,33 +112,11 @@ defmodule Chinook.Employee do
       end)
     end
 
-    def scope(queryable, nil), do: queryable |> where(false)
-    def scope(queryable, scope) when is_function(scope), do: scope.(queryable)
-  end
-
-  defmodule Auth do
-    import Ecto.Query
-
-    alias Chinook.Customer
-
-    def can?(%Employee{title: "General Manager"}, :read, :employee), do: {:ok, & &1}
-
-    def can?(%Employee{} = e, :read, :employee) do
-      {:ok, &scope_to_self_or_manager(&1, e)}
+    def scope(queryable, :all) do
+      queryable
     end
 
-    def can?(%Customer{} = c, :read, :employee) do
-      {:ok, &scope_to_customer_rep(&1, c)}
-    end
-
-    def can?(_, :read, :employee) do
-      {:error, :not_authorized}
-    end
-
-    def scope_to_self_or_manager(queryable, %Employee{
-          employee_id: employee_id,
-          reports_to_id: reports_to
-        }) do
+    def scope(queryable, employee_id: employee_id, reports_to_id: reports_to_id) do
       queryable
       |> where(
         [employee: e],
@@ -147,13 +125,38 @@ defmodule Chinook.Employee do
         # employe can access manager records - TODO: limit this access
         e.employee_id == ^employee_id or
           e.reports_to_id == ^employee_id or
-          e.employee_id == ^reports_to
+          e.employee_id == ^reports_to_id
       )
     end
 
-    def scope_to_customer_rep(queryable, %Customer{support_rep_id: support_rep_id}) do
+    def scope(queryable, employee_id: employee_id) do
       queryable
-      |> where([employee: e], e.employee_id == ^support_rep_id)
+      |> where([employee: e], e.employee_id == ^employee_id)
+    end
+  end
+
+  defmodule Auth do
+    alias Chinook.{Customer, Employee}
+
+    @type scope :: :all
+    @type user :: Employee.t() | Customer.t()
+    @type action :: :read
+    @type resource :: :employee
+
+    def can?(%Employee{title: "General Manager"}, :read, :employee) do
+      {:ok, :all}
+    end
+
+    def can?(%Employee{} = e, :read, :employee) do
+      {:ok, [employee_id: e.employee_id, reports_to_id: e.reports_to_id]}
+    end
+
+    def can?(%Customer{} = c, :read, :employee) do
+      {:ok, [employee_id: c.support_rep_id]}
+    end
+
+    def can?(_, :read, :employee) do
+      {:error, :not_authorized}
     end
   end
 end
