@@ -41,7 +41,7 @@ jobs:
       - name: Setup Database
         env:
           MIX_ENV: test
-        run: mix ecto.setup
+        run: mix setup
 
       - name: Run Tests
         run: mix test --trace
