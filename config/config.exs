@@ -1,22 +1,29 @@
-# This file is responsible for configuring your application
-# and its dependencies with the aid of the Mix.Config module.
+# This file is responsible for configuring your umbrella
+# and **all applications** and their dependencies with the
+# help of Mix.Config.
 #
-# This configuration file is loaded before any dependency and
-# is restricted to this project.
-
-# General application configuration
+# Note that all applications in your umbrella share the
+# same configuration and dependencies, which is why they
+# all use the same configuration file. If you want different
+# configurations or dependencies per app, it is best to
+# move said applications out of the umbrella.
 use Mix.Config
 
+# Configure Mix tasks and generators
 config :chinook,
   ecto_repos: [Chinook.Repo]
 
+config :chinook_web,
+  ecto_repos: [Chinook.Repo],
+  generators: [context_app: :chinook]
+
 # Configures the endpoint
-config :chinook, ChinookWeb.Endpoint,
+config :chinook_web, ChinookWeb.Endpoint,
   url: [host: "localhost"],
-  secret_key_base: "P+BM8Z0wL02F2sLYS+wFyt/1/ZJr4LFtguUzm0Z8DxdurxOtFKFTqW0HyfdcyuH9",
+  secret_key_base: "JbKAvKMZmfbEOrkrmOgXm0AlBMghU2BqcShu5x3/Bpr1dtJIJI26hGm8i4D10We3",
   render_errors: [view: ChinookWeb.ErrorView, accepts: ~w(html json), layout: false],
   pubsub_server: Chinook.PubSub,
-  live_view: [signing_salt: "SbOH1xuS"]
+  live_view: [signing_salt: "Fh4tYzPZiayxyhjD"]
 
 # Configures Elixir's Logger
 config :logger, :console,
