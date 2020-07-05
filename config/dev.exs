@@ -1,7 +1,7 @@
 use Mix.Config
 
 # Configure your database
-config :chinook, Chinook.Repo,
+config :chinook_repo, ChinookRepo,
   username: "postgres",
   password: "postgres",
   database: "chinook_dev",
@@ -15,7 +15,7 @@ config :chinook, Chinook.Repo,
 # The watchers configuration can be used to run external
 # watchers to your application. For example, we use it
 # with webpack to recompile .js and .css sources.
-config :chinook_web, ChinookWeb.Endpoint,
+config :chinook_host, ChinookHost.Endpoint,
   http: [port: 4000],
   debug_errors: true,
   code_reloader: true,
@@ -26,7 +26,7 @@ config :chinook_web, ChinookWeb.Endpoint,
       "--mode",
       "development",
       "--watch-stdin",
-      cd: Path.expand("../apps/chinook_web/assets", __DIR__)
+      cd: Path.expand("../apps/chinook_host/assets", __DIR__)
     ]
   ]
 
@@ -55,13 +55,13 @@ config :chinook_web, ChinookWeb.Endpoint,
 # different ports.
 
 # Watch static and templates for browser reloading.
-config :chinook_web, ChinookWeb.Endpoint,
+config :chinook_host, ChinookHost.Endpoint,
   live_reload: [
     patterns: [
       ~r"priv/static/.*(js|css|png|jpeg|jpg|gif|svg)$",
       ~r"priv/gettext/.*(po)$",
-      ~r"lib/chinook_web/(live|views)/.*(ex)$",
-      ~r"lib/chinook_web/templates/.*(eex)$"
+      ~r"lib/chinook_host/(live|views)/.*(ex)$",
+      ~r"lib/chinook_host/templates/.*(eex)$"
     ]
   ]
 

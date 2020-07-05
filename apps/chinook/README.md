@@ -1,3 +1,0 @@
-# Chinook
-
-**TODO: Add description**

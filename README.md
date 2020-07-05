@@ -38,7 +38,7 @@ Can only be accessed from their own account, their manager, one of their reports
 
 ## Relay
 
-The [ChinookWeb.Relay](./lib/chinook_web/schema/relay.ex) module contains helpers for resolving Relay connections.
+The [Chinook.Relay] module contains helpers for resolving Relay connections.
 
 ### Pagination
 

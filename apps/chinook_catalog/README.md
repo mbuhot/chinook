@@ -1,0 +1,7 @@
+# ChinookCatalog
+
+## Artists
+
+## Albums
+
+## Tracks
