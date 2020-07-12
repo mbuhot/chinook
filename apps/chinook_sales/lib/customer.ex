@@ -24,7 +24,8 @@ defmodule Chinook.Sales.Customer do
 
     belongs_to :support_rep, Employee, source: :SupportRepId, references: :employee_id
     has_many :invoices, Invoice, foreign_key: :customer_id, references: :customer_id
-    has_many :tracks, through: [:invoices, :tracks]
+    has_many :invoice_lines, through: [:invoices, :line_items]
+    # has_many :tracks, through: [:invoices, :tracks]
   end
 
   defmodule Loader do
@@ -132,7 +133,7 @@ defmodule Chinook.Sales.Customer do
     use Absinthe.Schema.Notation
     use Absinthe.Relay.Schema.Notation, :modern
 
-    import Absinthe.Resolution.Helpers, only: [dataloader: 1]
+    import Absinthe.Resolution.Helpers, only: [dataloader: 1, on_load: 2]
 
     alias Chinook.Util.Relay
     alias Chinook.Util.Scope
@@ -187,7 +188,25 @@ defmodule Chinook.Sales.Customer do
       connection field :tracks, node_type: :track do
         arg :by, :track_sort_order, default_value: :track_id
         arg :filter, :track_filter, default_value: %{}
-        resolve Relay.connection_dataloader(Chinook.Catalog.Loader)
+
+        resolve fn customer, args, res ->
+          res.context.loader
+          |> Dataloader.load(Chinook.Sales.Loader, :invoice_lines, customer)
+          |> on_load(fn loader ->
+            lines = loader |> Dataloader.get(Chinook.Sales.Loader, :invoice_lines, customer)
+            track_ids = Enum.map(lines, & &1.track_id)
+
+            loader
+            |> Dataloader.load_many(Chinook.Catalog.Loader, Chinook.Catalog.Track, track_ids)
+            |> on_load(fn loader ->
+              data =
+                loader
+                |> Dataloader.get_many(Chinook.Catalog.Loader, Chinook.Catalog.Track, track_ids)
+
+              Absinthe.Relay.Connection.from_list(data, args)
+            end)
+          end)
+        end
       end
     end
   end

@@ -24,7 +24,6 @@ defmodule Chinook.Sales.Invoice do
 
   defmodule Line do
     use Ecto.Schema
-    alias Chinook.Catalog.Track
 
     @type t :: %__MODULE__{}
 
@@ -33,8 +32,19 @@ defmodule Chinook.Sales.Invoice do
     schema "InvoiceLine" do
       field :unit_price, :decimal, source: :UnitPrice
       field :quantity, :integer, source: :Quantity
+      field :track_id, :integer, source: :TrackId
       belongs_to :invoice, Invoice, source: :InvoiceId, references: :invoice_id
-      belongs_to :track, Track, source: :TrackId, references: :track_id
+    end
+  end
+
+  defmodule Track do
+    use Ecto.Schema
+    @type t :: %__MODULE__{}
+    @primary_key {:track_id, :integer, source: :TrackId}
+
+    schema "Track" do
+      field :album_id, :integer, source: :AlbumId
+      field :genre_id, :integer, source: "AlbumId"
     end
   end
 
@@ -167,7 +177,17 @@ defmodule Chinook.Sales.Invoice do
     node object(:invoice_line, id_fetcher: &Relay.id/2) do
       field :unit_price, :decimal
       field :quantity, :integer
-      field :track, :track, resolve: dataloader(Chinook.Catalog.Loader)
+
+      field :track, :track do
+        resolve fn invoice_line, _args, res ->
+          Relay.node_dataloader(
+            res.context.loader,
+            Chinook.Catalog.Loader,
+            Chinook.Catalog.Track,
+            invoice_line.track_id
+          )
+        end
+      end
 
       field :invoice, :invoice do
         middleware Scope, read: :invoice

@@ -112,6 +112,6 @@ defmodule Chinook.Catalog.ArtistTest do
   }
 
   test "query artists" do
-    assert Absinthe.run!(@query, Chinook.Catalog) == @expected
+    assert Absinthe.run!(@query, Chinook.Catalog.TestSchema) == @expected
   end
 end

@@ -64,6 +64,6 @@ defmodule Chinook.Catalog.PlaylistTest do
   }
 
   test "query playlist" do
-    assert Absinthe.run!(@query, Chinook.Catalog) == @expected
+    assert Absinthe.run!(@query, Chinook.Catalog.TestSchema) == @expected
   end
 end

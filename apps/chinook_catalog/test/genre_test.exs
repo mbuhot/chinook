@@ -72,6 +72,6 @@ defmodule Chinook.Catalog.GenreTest do
   }
 
   test "query genre" do
-    assert Absinthe.run!(@query, Chinook.Catalog) == @expected
+    assert Absinthe.run!(@query, Chinook.Catalog.TestSchema) == @expected
   end
 end

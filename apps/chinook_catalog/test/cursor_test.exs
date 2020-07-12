@@ -46,6 +46,6 @@ defmodule Chinook.Catalog.CursorTest do
   }
 
   test "query artists with cursor" do
-    assert Absinthe.run!(@query, Chinook.Catalog) == @expected
+    assert Absinthe.run!(@query, Chinook.Catalog.TestSchema) == @expected
   end
 end

@@ -169,6 +169,6 @@ defmodule Chinook.Sales.CustomerTest do
 
   test "query customers" do
     user = Chinook.Sales.Employee |> ChinookRepo.get_by!(title: "General Manager")
-    assert Absinthe.run!(@query, Chinook.Sales, context: %{current_user: user}) == @expected
+    assert Absinthe.run!(@query, Chinook.Sales.TestSchema, context: %{current_user: user}) == @expected
   end
 end
