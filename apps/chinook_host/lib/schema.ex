@@ -1,15 +1,21 @@
 defmodule Chinook.GraphQL.Schema do
   use Absinthe.Schema
   use Absinthe.Relay.Schema, :modern
+  require Logger
+
+  def dataloader() do
+    Dataloader.new()
+    |> Chinook.Catalog.Loader.add(ChinookRepo)
+    |> Chinook.Sales.Loader.add(ChinookRepo)
+  end
 
   def context(ctx) do
-    loader =
-      Dataloader.new()
-      |> Chinook.Catalog.Loader.add(ChinookRepo)
-      |> Chinook.Sales.Loader.add(ChinookRepo)
+    dataloader = dataloader()
+    {:ok, async_loader} = Chinook.Loader.Server.start_link(dataloader)
 
     ctx
-    |> Map.put(:loader, loader)
+    |> Map.put(:loader, dataloader)
+    |> Map.put(:async_loader, async_loader)
     |> Map.put(:repo, ChinookRepo)
   end
 

@@ -34,7 +34,8 @@ defmodule ChinookRepo.MixProject do
     [
       {:ecto_sql, "~> 3.4"},
       {:postgrex, ">= 0.0.0"},
-      {:jason, "~> 1.0"}
+      {:jason, "~> 1.0"},
+      {:dataloader, github: "absinthe-graphql/dataloader", override: true},
     ]
   end
 

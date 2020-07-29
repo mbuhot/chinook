@@ -133,7 +133,7 @@ defmodule Chinook.Sales.Customer do
     use Absinthe.Schema.Notation
     use Absinthe.Relay.Schema.Notation, :modern
 
-    import Absinthe.Resolution.Helpers, only: [dataloader: 1, on_load: 2]
+    import Absinthe.Resolution.Helpers, only: [dataloader: 1]
 
     alias Chinook.Util.Relay
     alias Chinook.Util.Scope
@@ -189,22 +189,20 @@ defmodule Chinook.Sales.Customer do
         arg :by, :track_sort_order, default_value: :track_id
         arg :filter, :track_filter, default_value: %{}
 
-        resolve fn customer, args, res ->
-          res.context.loader
-          |> Dataloader.load(Chinook.Sales.Loader, :invoice_lines, customer)
-          |> on_load(fn loader ->
-            lines = loader |> Dataloader.get(Chinook.Sales.Loader, :invoice_lines, customer)
+        resolve fn customer, args, %{context: %{async_loader: loader}} ->
+          Absinthe.Resolution.Helpers.async(fn ->
+            lines =
+              loader
+              |> Chinook.Loader.load(Chinook.Sales.Loader, :invoice_lines, customer)
+              |> Chinook.Loader.await()
+
             track_ids = Enum.map(lines, & &1.track_id)
+            tracks =
+              loader
+              |> Chinook.Loader.load_many(Chinook.Sales.Loader, Chinook.Catalog.Track, track_ids)
+              |> Chinook.Loader.await()
 
-            loader
-            |> Dataloader.load_many(Chinook.Catalog.Loader, Chinook.Catalog.Track, track_ids)
-            |> on_load(fn loader ->
-              data =
-                loader
-                |> Dataloader.get_many(Chinook.Catalog.Loader, Chinook.Catalog.Track, track_ids)
-
-              Absinthe.Relay.Connection.from_list(data, args)
-            end)
+            Absinthe.Relay.Connection.from_list(tracks, args)
           end)
         end
       end

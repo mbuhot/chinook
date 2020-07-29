@@ -72,7 +72,7 @@ defmodule Chinook.Util.Relay do
       end
   """
   def connection_dataloader(source, argsfn) when is_function(argsfn) do
-    fn parent, args, res = %{context: %{loader: loader}} ->
+    fn parent, args, res ->
       args = decode_cursor(args)
 
       {batch_key, batch_value} =
@@ -84,11 +84,10 @@ defmodule Chinook.Util.Relay do
             {{assoc, args}, parent}
         end
 
-      loader
-      |> Dataloader.load(source, batch_key, batch_value)
-      |> Absinthe.Resolution.Helpers.on_load(fn loader ->
-        loader
-        |> Dataloader.get(source, batch_key, batch_value)
+      Absinthe.Resolution.Helpers.async(fn ->
+        res.context.async_loader
+        |> Chinook.Loader.load(source, batch_key, batch_value)
+        |> Task.await()
         |> connection_from_slice(args)
       end)
     end
