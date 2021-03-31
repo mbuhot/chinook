@@ -26,9 +26,17 @@ defmodule Chinook.Album do
 
       Album
       |> from(as: :album)
-      |> paginate(Album, :album, args)
+      |> do_paginate(args)
       |> filter(args[:filter])
     end
+
+    defp do_paginate(query, args = %{by: :artist_name}) do
+      query
+      |> join(:inner, [album: a], assoc(a, :artist), as: :artist)
+      |> paginate(Album, :album, :artist, %{args | by: :name})
+    end
+
+    defp do_paginate(query, args), do: paginate(query, Album, :album, args)
 
     def filter(queryable, nil), do: queryable
 

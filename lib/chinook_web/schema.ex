@@ -101,6 +101,15 @@ defmodule ChinookWeb.Schema do
       resolve Relay.connection_from_query(&Chinook.Artist.Loader.query/1)
     end
 
+
+    @desc "Paginate albums"
+    connection field :albums, node_type: :album do
+      arg :by, :album_sort_order, default_value: :album_id
+      arg :filter, :album_filter, default_value: %{}
+
+      resolve Relay.connection_from_query(&Chinook.Album.Loader.query/1)
+    end
+
     @desc "Paginate customers"
     connection field :customers, node_type: :customer do
       arg :by, :customer_sort_order, default_value: :customer_id

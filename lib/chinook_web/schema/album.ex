@@ -10,6 +10,7 @@ defmodule ChinookWeb.Schema.Album do
   enum :album_sort_order do
     value :id, as: :album_id
     value :title, as: :title
+    value :artist_name, as: :artist_name
   end
 
   @desc "Album filter"
