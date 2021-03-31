@@ -157,7 +157,7 @@ defmodule Chinook.QueryHelpers do
     upper_bound =
       agg_query
       |> where([{^key_binding, x}], field(x, ^key_field) == ^upper_id)
-      |> select_merge([{^key_binding, x}], map(x, ^[key_field]))
+      |> select([{^key_binding, x}], map(x, ^[key_field]))
       |> select_merge([{^sort_binding, y}], map(y, ^[sort_field]))
 
     queryable
@@ -182,7 +182,7 @@ defmodule Chinook.QueryHelpers do
     lower_bound =
       agg_query
       |> where([{^key_binding, x}], field(x, ^key_field) == ^lower_id)
-      |> select_merge([{^key_binding, x}], map(x, ^[key_field]))
+      |> select([{^key_binding, x}], map(x, ^[key_field]))
       |> select_merge([{^sort_binding, y}], map(y, ^[sort_field]))
 
     queryable
