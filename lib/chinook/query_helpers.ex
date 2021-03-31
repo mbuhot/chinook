@@ -22,6 +22,17 @@ defmodule Chinook.QueryHelpers do
     paginate(query, schema, binding, binding, args)
   end
 
+  @doc """
+  Similar to paginate/4, but allows for sorting by a joined association.
+
+  ## Example
+
+      # Last 10 tracks by artist name
+      Track
+      |> from(as: :track)
+      |> join(:inner, [track: t], assoc(t, :artist), as: :artist)
+      |> paginate(Track, :track, :artist, %{last: 10, by: :name})
+  """
   @spec paginate(Ecto.Queryable.t(), module, key_binding :: atom, sort_binding :: atom, PagingOptions.t()) :: Ecto.Query.t()
   def paginate(query, schema, key_binding, sort_binding, args) do
     query
