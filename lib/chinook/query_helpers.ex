@@ -19,11 +19,17 @@ defmodule Chinook.QueryHelpers do
   """
   @spec paginate(Ecto.Queryable.t(), module, binding :: atom, PagingOptions.t()) :: Ecto.Query.t()
   def paginate(query, schema, binding, args) do
+    paginate(query, schema, binding, binding, args)
+  end
+
+  @spec paginate(Ecto.Queryable.t(), module, key_binding :: atom, sort_binding :: atom, PagingOptions.t()) :: Ecto.Query.t()
+  def paginate(query, schema, key_binding, sort_binding, args) do
     query
-    |> paginate_where(binding, args)
-    |> paginate_order_limit(schema, binding, args)
+    |> paginate_where(key_binding, sort_binding, args)
+    |> paginate_order_limit(schema, key_binding, sort_binding, args)
     |> select_row_count(args)
   end
+
 
   @doc """
   Run the given query as a inner lateral join for each value of batch_ids
@@ -100,91 +106,93 @@ defmodule Chinook.QueryHelpers do
   end
 
   # Adds the order_by, limit, and where clauses for a paginated query
-  defp paginate_order_limit(queryable, schema, binding, args = %{by: cursor_field}) do
+  defp paginate_order_limit(queryable, schema, key_binding, sort_binding, args = %{by: cursor_field}) do
     [pk] = schema.__schema__(:primary_key)
 
     case args do
       %{last: n} ->
         queryable
-        |> order_by([{^binding, x}], desc: field(x, ^cursor_field), desc: field(x, ^pk))
+        |> order_by([{^key_binding, x}, {^sort_binding, y}], desc: field(y, ^cursor_field), desc: field(x, ^pk))
         |> limit(^n)
 
       %{first: n} ->
         queryable
-        |> order_by([{^binding, x}], asc: field(x, ^cursor_field), asc: field(x, ^pk))
+        |> order_by([{^key_binding, x}, {^sort_binding, y}], asc: field(y, ^cursor_field), asc: field(x, ^pk))
         |> limit(^n)
 
       _ ->
         queryable
-        |> order_by([{^binding, x}], asc: field(x, ^cursor_field), asc: field(x, ^pk))
+        |> order_by([{^key_binding, x}, {^sort_binding, y}], asc: field(y, ^cursor_field), asc: field(x, ^pk))
     end
   end
 
-  defp paginate_where(queryable, binding, args = %{by: by}) do
+  defp paginate_where(queryable, key_binding, sort_binding, args = %{by: by}) do
     case args do
       %{after: [{key_field, lower}], before: [{key_field, upper}]} ->
         queryable
-        |> add_lower_bound(binding, lower, key_field, by)
-        |> add_upper_bound(binding, upper, key_field, by)
+        |> add_lower_bound(key_binding, sort_binding, lower, key_field, by)
+        |> add_upper_bound(key_binding, sort_binding, upper, key_field, by)
 
       %{after: [{key_field, lower}]} ->
         queryable
-        |> add_lower_bound(binding, lower, key_field, by)
+        |> add_lower_bound(key_binding, sort_binding, lower, key_field, by)
 
       %{before: [{key_field, upper}]} ->
         queryable
-        |> add_upper_bound(binding, upper, key_field, by)
+        |> add_upper_bound(key_binding, sort_binding, upper, key_field, by)
 
       _ ->
         queryable
     end
   end
 
-  defp add_upper_bound(queryable, binding, upper_id, key_field, key_field) do
+  defp add_upper_bound(queryable, key_binding, _sort_binding, upper_id, key_field, key_field) do
     queryable
-    |> where([{^binding, x}], field(x, ^key_field) < ^upper_id)
+    |> where([{^key_binding, x}], field(x, ^key_field) < ^upper_id)
   end
 
-  defp add_upper_bound(queryable, binding, upper_id, key_field, sort_field) do
+  defp add_upper_bound(queryable, key_binding, sort_binding, upper_id, key_field, sort_field) do
     agg_query = bound_query(queryable)
 
     upper_bound =
       agg_query
-      |> where([{^binding, x}], field(x, ^key_field) == ^upper_id)
-      |> select([{^binding, x}], map(x, ^[key_field, sort_field]))
+      |> where([{^key_binding, x}], field(x, ^key_field) == ^upper_id)
+      |> select_merge([{^key_binding, x}], map(x, ^[key_field]))
+      |> select_merge([{^sort_binding, y}], map(y, ^[sort_field]))
 
     queryable
     |> with_cte("upper_bound", as: ^upper_bound)
     |> join(:inner, [], "upper_bound", as: :upper_bound)
     |> where(
-      [{^binding, x}, {:upper_bound, ub}],
-      field(x, ^sort_field) < field(ub, ^sort_field) or
-        (field(x, ^sort_field) == field(ub, ^sort_field) and
+      [{^key_binding, x}, {^sort_binding, y}, {:upper_bound, ub}],
+      field(y, ^sort_field) < field(ub, ^sort_field) or
+        (field(y, ^sort_field) == field(ub, ^sort_field) and
            field(x, ^key_field) < field(ub, ^key_field))
     )
   end
 
-  defp add_lower_bound(queryable, binding, lower_id, key_field, key_field) do
+  defp add_lower_bound(queryable, key_binding, _sort_binding, lower_id, key_field, key_field) do
     queryable
-    |> where([{^binding, x}], field(x, ^key_field) > ^lower_id)
+    |> where([{^key_binding, x}], field(x, ^key_field) > ^lower_id)
   end
 
-  defp add_lower_bound(queryable, binding, lower_id, key_field, sort_field) do
+  defp add_lower_bound(queryable, key_binding, sort_binding, lower_id, key_field, sort_field) do
     agg_query = bound_query(queryable)
 
     lower_bound =
       agg_query
-      |> where([{^binding, x}], field(x, ^key_field) == ^lower_id)
-      |> select([{^binding, x}], map(x, ^[key_field, sort_field]))
+      |> where([{^key_binding, x}], field(x, ^key_field) == ^lower_id)
+      |> select_merge([{^key_binding, x}], map(x, ^[key_field]))
+      |> select_merge([{^sort_binding, y}], map(y, ^[sort_field]))
 
     queryable
     |> with_cte("lower_bound", as: ^lower_bound)
     |> join(:inner, [], "lower_bound", as: :lower_bound)
     |> where(
-      [{^binding, x}, {:lower_bound, ub}],
-      field(x, ^sort_field) > field(ub, ^sort_field) or
-        (field(x, ^sort_field) == field(ub, ^sort_field) and
-           field(x, ^key_field) > field(ub, ^key_field))
+      [{^key_binding, x}, {^sort_binding, y}, {:lower_bound, lb}],
+      field(y, ^sort_field) > field(lb, ^sort_field) or
+        (field(y, ^sort_field) == field(lb, ^sort_field) and
+           field(x, ^key_field) > field(lb, ^key_field))
     )
   end
 

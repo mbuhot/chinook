@@ -24,6 +24,7 @@ defmodule Chinook.Track do
 
     belongs_to :genre, Genre, foreign_key: :genre_id, references: :genre_id, source: :GenreId
     belongs_to :album, Album, foreign_key: :album_id, references: :album_id, source: :AlbumId
+    has_one :artist, through: [:album, :artist]
     has_many :invoice_lines, Chinook.Invoice.Line, foreign_key: :track_id, references: :track_id
     has_many :purchasers, through: [:invoice_lines, :invoice, :customer]
   end
@@ -38,8 +39,19 @@ defmodule Chinook.Track do
 
       Track
       |> from(as: :track)
-      |> paginate(Track, :track, args)
+      |> do_paginate(args)
       |> filter(args[:filter])
+    end
+
+    defp do_paginate(query, %{by: :artist_name} = args) do
+      query
+      |> join(:inner, [track: t], assoc(t, :artist), as: :artist)
+      |> paginate(Track, :track, :artist, %{args | by: :name})
+    end
+
+    defp do_paginate(query, args) do
+      query
+      |> paginate(Track, :track, args)
     end
 
     def filter(queryable, nil), do: queryable

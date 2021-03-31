@@ -12,6 +12,7 @@ defmodule ChinookWeb.Schema.Track do
     value :id, as: :track_id
     value :name, as: :name
     value :duration, as: :milliseconds
+    value :artist_name, as: :artist_name
   end
 
   @desc "Track filter"
@@ -36,6 +37,7 @@ defmodule ChinookWeb.Schema.Track do
 
     field :genre, :genre, resolve: dataloader(Chinook.Loader)
     field :album, :album, resolve: dataloader(Chinook.Loader)
+    field :artist, :artist, resolve: dataloader(Chinook.Loader)
 
     connection field :purchasers, node_type: :customer do
       arg :by, :customer_sort_order, default_value: :customer_id
