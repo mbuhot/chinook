@@ -2,8 +2,6 @@ defmodule ChinookWeb.Schema.Customer do
   use Absinthe.Schema.Notation
   use Absinthe.Relay.Schema.Notation, :modern
 
-  import Absinthe.Resolution.Helpers, only: [dataloader: 1]
-
   alias ChinookWeb.Relay
   alias ChinookWeb.Scope
 
@@ -44,7 +42,7 @@ defmodule ChinookWeb.Schema.Customer do
 
     field :support_rep, :employee do
       middleware Scope, read: :employee
-      resolve dataloader(Chinook.Loader)
+      resolve Relay.node_dataloader(Chinook.Loader)
     end
 
     connection field :invoices, node_type: :invoice do

@@ -4,6 +4,31 @@ defmodule Chinook.QueryHelpers do
   alias Chinook.PagingOptions
 
   @doc """
+  Builds a select clause from requested fields.
+  """
+  @spec select_fields(Ecto.Queryable.t(), module, [atom] | nil) :: Ecto.Query.t()
+  def select_fields(query, _schema, nil) do
+    query
+  end
+
+  def select_fields(query, schema, fields) do
+    pk_fields = schema.__schema__(:primary_key)
+    associations = schema.__schema__(:associations)
+    fk_fields =
+      associations
+      |> Enum.map(& schema.__schema__(:association, &1))
+      |> Enum.filter(&match?(%Ecto.Association.BelongsTo{}, &1))
+      |> Enum.map(& &1.owner_key)
+
+    valid_fields = schema.__schema__(:fields)
+    fields = Enum.filter(fields, & &1 in valid_fields)
+    selected_fields = Enum.uniq(fields ++ pk_fields ++ fk_fields)
+
+    query
+    |> select(^selected_fields)
+  end
+
+  @doc """
   Apply pagination to a query using a named binding.
 
   The named binding is useful when the cursor field is not on the first
@@ -210,6 +235,7 @@ defmodule Chinook.QueryHelpers do
   defp bound_query(queryable) do
     queryable
     |> Ecto.Queryable.to_query()
+    |> exclude(:select)
     |> exclude(:limit)
     |> exclude(:offset)
     |> exclude(:where)
@@ -225,7 +251,7 @@ defmodule Chinook.QueryHelpers do
 
       _ ->
         queryable
-        |> select([x], %{x | row_count: count() |> over()})
+        |> select_merge([x], %{x | row_count: count() |> over()})
     end
   end
 end

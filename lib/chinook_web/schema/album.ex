@@ -2,7 +2,7 @@ defmodule ChinookWeb.Schema.Album do
   use Absinthe.Schema.Notation
   use Absinthe.Relay.Schema.Notation, :modern
 
-  import Absinthe.Resolution.Helpers, only: [dataloader: 1]
+  # import Absinthe.Resolution.Helpers, only: [dataloader: 1]
 
   alias ChinookWeb.Relay
 
@@ -20,7 +20,7 @@ defmodule ChinookWeb.Schema.Album do
 
   node object(:album, id_fetcher: &Relay.id/2) do
     field :title, non_null(:string)
-    field :artist, :artist, resolve: dataloader(Chinook.Loader)
+    field :artist, :artist, resolve: Relay.node_dataloader(Chinook.Loader)
 
     connection field :tracks, node_type: :track do
       arg :by, :track_sort_order, default_value: :track_id

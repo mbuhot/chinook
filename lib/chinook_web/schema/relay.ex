@@ -8,13 +8,62 @@ defmodule ChinookWeb.Relay do
     id
   end
 
-  def node_dataloader(loader, source, schema, id) do
+  @doc """
+  Load a top-level Relay node, given an ID
+
+  ## Example
+
+      node field do
+        resolve(fn
+          %{type: :album, id: id}, resolution ->
+            Relay.node_dataloader(Chinook.Loader, Chinook.Album, id, resolution)
+
+          %{type: :customer, id: id}, resolution = %{context: %{current_user: current_user}} ->
+            with {:ok, scope} <- Chinook.Customer.Auth.can?(current_user, :read, :customer) do
+              Relay.node_dataloader(Chinook.Loader, {Chinook.Customer, %{scope: scope}}, id, resolution)
+            end
+        end)
+      end
+  """
+  def node_dataloader(source, {schema, args}, id, %{context: %{loader: loader}}) do
     loader
-    |> Dataloader.load(source, schema, id)
+    |> Dataloader.load(source, {schema, args}, id)
     |> Absinthe.Resolution.Helpers.on_load(fn loader ->
-      result = Dataloader.get(loader, source, schema, id)
+      result = Dataloader.get(loader, source, {schema, args}, id)
       {:ok, result}
     end)
+  end
+
+  def node_dataloader(source, schema, id, res) do
+    node_dataloader(source, {schema, %{}}, id, res)
+  end
+
+  @doc """
+  Resolve a node using dataloader and an Ecto association that
+  matches the name of the field being resolved.
+
+  # Example
+
+      field :artist, :artist, resolve: Relay.node_dataloader(Chinook.Loader)
+  """
+  def node_dataloader(source) do
+    fn parent, args, res = %{context: %{loader: loader}} ->
+      assoc = res.definition.schema_node.identifier
+      args = node_fields(args, res)
+
+      loader
+      |> Dataloader.load(source, {assoc, args}, parent)
+      |> Absinthe.Resolution.Helpers.on_load(fn loader ->
+        result = Dataloader.get(loader, source, {assoc, args}, parent)
+        {:ok, result}
+      end)
+    end
+  end
+
+  defp node_fields(args, resolution) do
+    query_fields = resolution |> Absinthe.Resolution.project()
+    selected_node_fields = Enum.map(query_fields, fn x -> x.schema_node.identifier end)
+    Map.put(args, :fields, selected_node_fields)
   end
 
   @doc """
@@ -35,10 +84,21 @@ defmodule ChinookWeb.Relay do
     end
   """
   def connection_from_query(queryfn) do
-    fn args, %{context: %{repo: repo}} ->
-      args = decode_cursor(args)
+    fn args, res = %{context: %{repo: repo}} ->
+      args = args |> connection_fields(res) |> decode_cursor()
       data = args |> queryfn.() |> repo.all()
       connection_from_slice(data, args)
+    end
+  end
+
+  defp connection_fields(args, resolution) do
+    query_fields = resolution |> Absinthe.Resolution.project()
+    with edge_fields = %Absinthe.Blueprint.Document.Field{} <- Enum.find(query_fields, fn x -> x.schema_node.identifier == :edges end),
+         node_fields = %Absinthe.Blueprint.Document.Field{} <- Enum.find(edge_fields.selections, fn x -> x.schema_node.identifier == :node end) do
+      selected_node_fields = Enum.map(node_fields.selections, fn x -> x.schema_node.identifier end)
+      Map.put(args, :fields, selected_node_fields)
+    else
+      _ -> args
     end
   end
 
@@ -78,9 +138,11 @@ defmodule ChinookWeb.Relay do
       {batch_key, batch_value} =
         case argsfn.(parent, args, res) do
           {schema, args, [{foreign_key, val}]} ->
+            args = connection_fields(args, res)
             {{{:many, schema}, args}, [{foreign_key, val}]}
 
           {assoc, args, parent} when is_atom(assoc) and is_struct(parent) ->
+            args = connection_fields(args, res)
             {{assoc, args}, parent}
         end
 

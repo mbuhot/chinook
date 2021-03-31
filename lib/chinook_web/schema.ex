@@ -61,35 +61,35 @@ defmodule ChinookWeb.Schema do
   query do
     node field do
       resolve(fn
-        %{type: :album, id: id}, %{context: %{loader: loader}} ->
-          Relay.node_dataloader(loader, Chinook.Loader, Chinook.Album, id)
+        %{type: :album, id: id}, resolution ->
+          Relay.node_dataloader(Chinook.Loader, Chinook.Album, id, resolution)
 
-        %{type: :artist, id: id}, %{context: %{loader: loader}} ->
-          Relay.node_dataloader(loader, Chinook.Loader, Chinook.Artist, id)
+        %{type: :artist, id: id}, resolution ->
+          Relay.node_dataloader(Chinook.Loader, Chinook.Artist, id, resolution)
 
-        %{type: :customer, id: id}, %{context: %{current_user: current_user, loader: loader}} ->
+        %{type: :customer, id: id}, resolution = %{context: %{current_user: current_user}} ->
           with {:ok, scope} <- Chinook.Customer.Auth.can?(current_user, :read, :customer) do
-            Relay.node_dataloader(loader, Chinook.Loader, {Chinook.Customer, %{scope: scope}}, id)
+            Relay.node_dataloader(Chinook.Loader, {Chinook.Customer, %{scope: scope}}, id, resolution)
           end
 
-        %{type: :employee, id: id}, %{context: %{current_user: current_user, loader: loader}} ->
+        %{type: :employee, id: id}, resolution = %{context: %{current_user: current_user}} ->
           with {:ok, scope} <- Chinook.Employee.Auth.can?(current_user, :read, :employee) do
-            Relay.node_dataloader(loader, Chinook.Loader, {Chinook.Employee, %{scope: scope}}, id)
+            Relay.node_dataloader(Chinook.Loader, {Chinook.Employee, %{scope: scope}}, id, resolution)
           end
 
-        %{type: :genre, id: id}, %{context: %{loader: loader}} ->
-          Relay.node_dataloader(loader, Chinook.Loader, Chinook.Genre, id)
+        %{type: :genre, id: id}, resolution ->
+          Relay.node_dataloader(Chinook.Loader, Chinook.Genre, id, resolution)
 
-        %{type: :invoice, id: id}, %{context: %{current_user: current_user, loader: loader}} ->
+        %{type: :invoice, id: id}, resolution = %{context: %{current_user: current_user}} ->
           with {:ok, scope} <- Chinook.Invoice.Auth.can?(current_user, :read, :invoice) do
-            Relay.node_dataloader(loader, Chinook.Loader, {Chinook.Invoice, %{scope: scope}}, id)
+            Relay.node_dataloader(Chinook.Loader, {Chinook.Invoice, %{scope: scope}}, id, resolution)
           end
 
-        %{type: :playlist, id: id}, %{context: %{loader: loader}} ->
-          Relay.node_dataloader(loader, Chinook.Loader, Chinook.Playlist, id)
+        %{type: :playlist, id: id}, resolution ->
+          Relay.node_dataloader(Chinook.Loader, Chinook.Playlist, id, resolution)
 
-        %{type: :track, id: id}, %{context: %{loader: loader}} ->
-          Relay.node_dataloader(loader, Chinook.Loader, Chinook.Track, id)
+        %{type: :track, id: id}, resolution ->
+          Relay.node_dataloader(Chinook.Loader, Chinook.Track, id, resolution)
       end)
     end
 

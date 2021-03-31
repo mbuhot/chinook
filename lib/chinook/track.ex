@@ -39,6 +39,7 @@ defmodule Chinook.Track do
 
       Track
       |> from(as: :track)
+      |> select_fields(Track, Map.get(args, :fields))
       |> do_paginate(args)
       |> filter(args[:filter])
     end

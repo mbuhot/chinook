@@ -31,7 +31,7 @@ defmodule ChinookWeb.Schema.Invoice do
 
     field :customer, :customer do
       middleware Scope, read: :customer
-      resolve dataloader(Chinook.Loader)
+      resolve Relay.node_dataloader(Chinook.Loader)
     end
 
     # line_items is not a connection here, just a list that can be resolved along with the
@@ -48,7 +48,7 @@ defmodule ChinookWeb.Schema.Invoice do
 
     field :invoice, :invoice do
       middleware Scope, read: :invoice
-      resolve dataloader(Chinook.Loader)
+      resolve Relay.node_dataloader(Chinook.Loader)
     end
   end
 end
