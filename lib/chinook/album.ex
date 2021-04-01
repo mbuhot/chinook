@@ -26,7 +26,7 @@ defmodule Chinook.Album do
 
       Album
       |> from(as: :album)
-      |> select_fields(Album, Map.get(args, :fields))
+      |> select_fields(Album, :album, args[:fields])
       |> do_paginate(args)
       |> filter(args[:filter])
     end

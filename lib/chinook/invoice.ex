@@ -50,6 +50,7 @@ defmodule Chinook.Invoice do
 
       Invoice
       |> from(as: :invoice)
+      |> select_fields(Invoice, :invoice, args[:invoice])
       |> paginate(Invoice, :invoice, args)
       |> filter(args[:filter])
       |> scope(args[:scope])

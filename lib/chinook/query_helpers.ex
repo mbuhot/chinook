@@ -6,26 +6,25 @@ defmodule Chinook.QueryHelpers do
   @doc """
   Builds a select clause from requested fields.
   """
-  @spec select_fields(Ecto.Queryable.t(), module, [atom] | nil) :: Ecto.Query.t()
-  def select_fields(query, _schema, nil) do
+  @spec select_fields(Ecto.Queryable.t(), schema :: module, binding :: atom, fields :: [atom] | nil) :: Ecto.Query.t()
+  def select_fields(query, _schema, _binding, nil) do
     query
   end
 
-  def select_fields(query, schema, fields) do
+  def select_fields(query, schema, binding, fields) do
     pk_fields = schema.__schema__(:primary_key)
-    associations = schema.__schema__(:associations)
     fk_fields =
-      associations
+      schema.__schema__(:associations)
       |> Enum.map(& schema.__schema__(:association, &1))
       |> Enum.filter(&match?(%Ecto.Association.BelongsTo{}, &1))
       |> Enum.map(& &1.owner_key)
 
-    valid_fields = schema.__schema__(:fields)
-    fields = Enum.filter(fields, & &1 in valid_fields)
+    basic_fields = schema.__schema__(:fields)
+    fields = Enum.filter(fields, & &1 in basic_fields)
     selected_fields = Enum.uniq(fields ++ pk_fields ++ fk_fields)
 
     query
-    |> select(^selected_fields)
+    |> select([{^binding, x}], struct(x, ^selected_fields))
   end
 
   @doc """

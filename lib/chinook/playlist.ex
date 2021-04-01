@@ -45,6 +45,7 @@ defmodule Chinook.Playlist do
 
       Playlist
       |> from(as: :playlist)
+      |> select_fields(Playlist, :playlist, args[:fields])
       |> paginate(Playlist, :playlist, args)
       |> filter(args[:filter])
     end

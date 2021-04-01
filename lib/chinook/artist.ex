@@ -26,7 +26,7 @@ defmodule Chinook.Artist do
 
       Artist
       |> from(as: :artist)
-      |> select_fields(Artist, Map.get(args, :fields))
+      |> select_fields(Artist, :artist, args[:fields])
       |> paginate(Artist, :artist, args)
       |> filter(args[:filter])
     end

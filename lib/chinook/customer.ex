@@ -37,6 +37,7 @@ defmodule Chinook.Customer do
 
       Customer
       |> from(as: :customer)
+      |> select_fields(Customer, :customer, args[:fields])
       |> paginate(Customer, :customer, args)
       |> filter(args[:filter])
       |> scope(args[:scope])

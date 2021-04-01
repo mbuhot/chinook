@@ -38,6 +38,7 @@ defmodule Chinook.Employee do
 
       Employee
       |> from(as: :employee)
+      |> select_fields(Employee, :employee, args[:fields])
       |> paginate(Employee, :employee, args)
       |> filter(args[:filter])
       |> scope(args[:scope])

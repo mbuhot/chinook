@@ -24,6 +24,7 @@ defmodule Chinook.Genre do
 
       Genre
       |> from(as: :genre)
+      |> select_fields(Genre, :genre, args[:fields])
       |> paginate(Genre, :genre, args)
       |> filter(args[:filter])
     end
