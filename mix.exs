@@ -36,7 +36,7 @@ defmodule Chinook.MixProject do
       {:absinthe, ">= 0.0.0"},
       {:absinthe_plug, "~> 1.5"},
       {:absinthe_relay, "~> 1.5"},
-      {:dataloader, ">= 0.0.0"},
+      {:dataloader, github: "absinthe-graphql/dataloader", override: true},
       {:ecto_sql, "~> 3.4"},
       {:floki, ">= 0.0.0", only: :test},
       {:gettext, "~> 0.11"},
