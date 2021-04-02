@@ -24,4 +24,12 @@ defmodule ChinookWeb.Schema.Playlist do
       resolve Relay.connection_dataloader(Chinook.Loader)
     end
   end
+
+  def resolve_node(id, resolution) do
+    Relay.node_dataloader(Chinook.Loader, Chinook.Playlist, id, resolution)
+  end
+
+  def resolve_connection do
+    Relay.connection_from_query(&Chinook.Playlist.Loader.query/1)
+  end
 end

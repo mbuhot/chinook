@@ -2,8 +2,6 @@ defmodule ChinookWeb.Schema.Track do
   use Absinthe.Schema.Notation
   use Absinthe.Relay.Schema.Notation, :modern
 
-  import Absinthe.Resolution.Helpers, only: [dataloader: 1]
-
   alias ChinookWeb.Relay
   alias ChinookWeb.Scope
 
@@ -35,9 +33,9 @@ defmodule ChinookWeb.Schema.Track do
     field :bytes, non_null(:integer)
     field :unit_price, non_null(:decimal)
 
-    field :genre, :genre, resolve: dataloader(Chinook.Loader)
-    field :album, :album, resolve: dataloader(Chinook.Loader)
-    field :artist, :artist, resolve: dataloader(Chinook.Loader)
+    field :genre, :genre, resolve: Relay.node_dataloader(Chinook.Loader)
+    field :album, :album, resolve: Relay.node_dataloader(Chinook.Loader)
+    field :artist, :artist, resolve: Relay.node_dataloader(Chinook.Loader)
 
     connection field :purchasers, node_type: :customer do
       arg :by, :customer_sort_order, default_value: :customer_id
@@ -46,5 +44,9 @@ defmodule ChinookWeb.Schema.Track do
       middleware Scope, read: :customer
       resolve Relay.connection_dataloader(Chinook.Loader)
     end
+  end
+
+  def resolve_node(id, resolution) do
+    Relay.node_dataloader(Chinook.Loader, Chinook.Track, id, resolution)
   end
 end

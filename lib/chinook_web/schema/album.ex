@@ -28,4 +28,12 @@ defmodule ChinookWeb.Schema.Album do
       resolve Relay.connection_dataloader(Chinook.Loader)
     end
   end
+
+  def resolve_node(id, resolution) do
+    Relay.node_dataloader(Chinook.Loader, Chinook.Album, id, resolution)
+  end
+
+  def resolve_connection do
+    Relay.connection_from_query(&Chinook.Album.Loader.query/1)
+  end
 end

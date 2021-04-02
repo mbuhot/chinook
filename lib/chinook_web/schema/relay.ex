@@ -80,7 +80,7 @@ defmodule ChinookWeb.Relay do
       arg :by, :artist_sort_order, default_value: :artist_id
       arg :filter, :artist_filter, default_value: %{}
 
-      resolve Relay.connection_from_query(&Artist.Loader.query/1, args)
+      resolve Relay.connection_from_query(&Artist.Loader.query/1)
     end
   """
   def connection_from_query(queryfn) do

@@ -44,11 +44,21 @@ defmodule ChinookWeb.Schema.Invoice do
   node object(:invoice_line, id_fetcher: &Relay.id/2) do
     field :unit_price, :decimal
     field :quantity, :integer
-    field :track, :track, resolve: dataloader(Chinook.Loader)
+    field :track, :track, resolve: Relay.node_dataloader(Chinook.Loader)
 
     field :invoice, :invoice do
       middleware Scope, read: :invoice
       resolve Relay.node_dataloader(Chinook.Loader)
     end
+  end
+
+  def resolve_node(id, resolution = %{context: %{current_user: current_user}}) do
+    with {:ok, scope} <- Chinook.Invoice.Auth.can?(current_user, :read, :invoice) do
+      Relay.node_dataloader(Chinook.Loader, {Chinook.Invoice, %{scope: scope}}, id, resolution)
+    end
+  end
+
+  def resolve_connection do
+    Relay.connection_from_query(&Chinook.Invoice.Loader.query/1)
   end
 end

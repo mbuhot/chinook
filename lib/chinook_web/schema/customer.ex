@@ -58,4 +58,14 @@ defmodule ChinookWeb.Schema.Customer do
       resolve Relay.connection_dataloader(Chinook.Loader)
     end
   end
+
+  def resolve_node(id, resolution = %{context: %{current_user: current_user}}) do
+    with {:ok, scope} <- Chinook.Customer.Auth.can?(current_user, :read, :customer) do
+      Relay.node_dataloader(Chinook.Loader, {Chinook.Customer, %{scope: scope}}, id, resolution)
+    end
+  end
+
+  def resolve_connection do
+    Relay.connection_from_query(&Chinook.Customer.Loader.query/1)
+  end
 end

@@ -25,4 +25,12 @@ defmodule ChinookWeb.Schema.Genre do
       resolve Relay.connection_dataloader(Chinook.Loader)
     end
   end
+
+  def resolve_node(id, resolution) do
+    Relay.node_dataloader(Chinook.Loader, Chinook.Genre, id, resolution)
+  end
+
+  def resolve_connection do
+    Relay.connection_from_query(&Chinook.Genre.Loader.query/1)
+  end
 end

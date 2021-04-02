@@ -1,6 +1,7 @@
 defmodule ChinookWeb.Schema.Employee do
   use Absinthe.Schema.Notation
   use Absinthe.Relay.Schema.Notation, :modern
+  alias Absinthe.Relay.Node.ParseIDs
 
   alias ChinookWeb.Relay
   alias ChinookWeb.Scope
@@ -54,7 +55,7 @@ defmodule ChinookWeb.Schema.Employee do
       arg :by, :employee_sort_order, default_value: :employee_id
       arg :filter, :employee_filter, default_value: %{}
 
-      middleware :decode_filter
+      middleware ParseIDs, filter: [reports_to: :employee]
       middleware Scope, read: :employee
       resolve Relay.connection_dataloader(Chinook.Loader)
     end
@@ -68,12 +69,13 @@ defmodule ChinookWeb.Schema.Employee do
     end
   end
 
-  def decode_filter(res = %{arguments: %{filter: %{reports_to: report_to_id}}}, _opts) do
-    {:ok, %{id: decoded, type: :employee}} =
-      Absinthe.Relay.Node.from_global_id(report_to_id, ChinookWeb.Schema)
-
-    put_in(res.arguments.filter.reports_to, decoded)
+  def resolve_node(id, resolution = %{context: %{current_user: current_user}}) do
+    with {:ok, scope} <- Chinook.Employee.Auth.can?(current_user, :read, :employee) do
+      Relay.node_dataloader(Chinook.Loader, {Chinook.Employee, %{scope: scope}}, id, resolution)
+    end
   end
 
-  def decode_filter(res, _opts), do: res
+  def resolve_connection do
+    Relay.connection_from_query(&Chinook.Employee.Loader.query/1)
+  end
 end

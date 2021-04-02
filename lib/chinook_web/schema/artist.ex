@@ -39,4 +39,12 @@ defmodule ChinookWeb.Schema.Artist do
       resolve Relay.connection_dataloader(Chinook.Loader)
     end
   end
+
+  def resolve_node(id, resolution) do
+    Relay.node_dataloader(Chinook.Loader, Chinook.Artist, id, resolution)
+  end
+
+  def resolve_connection do
+    Relay.connection_from_query(&Chinook.Artist.Loader.query/1)
+  end
 end
