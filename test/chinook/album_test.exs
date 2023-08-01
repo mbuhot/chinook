@@ -364,7 +364,7 @@ defmodule Chinook.AlbumTest do
 
     def longest_tracks_per_album(limit: limit) do
       fn album_ids ->
-        Repo.query!(
+        %{rows: rows, columns: cols} = Repo.query!(
           """
           SELECT track.*
           FROM unnest($1::int[]) as album(album_id)
@@ -377,9 +377,7 @@ defmodule Chinook.AlbumTest do
           """,
           [album_ids, limit]
         )
-        |> case do
-          %{rows: rows, columns: cols} -> Enum.map(rows, &Repo.load(Track, {cols, &1}))
-        end
+        Enum.map(rows, &Repo.load(Track, {cols, &1}))
       end
     end
 
