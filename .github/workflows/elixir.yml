@@ -7,8 +7,10 @@ on:
     branches: [master]
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
+    name: OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}}
+
     services:
       postgres:
         image: postgres:alpine
@@ -19,15 +21,16 @@ jobs:
           POSTGRES_USER: postgres
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
 
+    strategy:
+      matrix:
+        otp: ['26.0']
+        elixir: ['1.15.3']
     steps:
-      - uses: actions/checkout@v2
-      - name: Setup elixir
-        uses: actions/setup-elixir@v1
+      - uses: actions/checkout@v3
+      - uses: erlef/setup-beam@v1
         with:
-          elixir-version: '1.15.3' # Define the elixir version [required]
-          otp-version: '26.0.2' # Define the OTP version [required]
-          experimental-otp: true
-
+          otp-version: ${{matrix.otp}}
+          elixir-version: ${{matrix.elixir}}
       - name: Cache hex deps
         uses: actions/cache@v2
         env:
@@ -36,13 +39,10 @@ jobs:
           path: ./deps
           key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('mix.lock') }}
 
-      - name: Install Dependencies
-        run: mix deps.get
-
       - name: Setup Database
         env:
           MIX_ENV: test
         run: mix ecto.setup
 
-      - name: Run Tests
-        run: mix test --trace
+      - run: mix deps.get
+      - run: mix test --trace
