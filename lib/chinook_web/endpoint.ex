@@ -7,14 +7,9 @@ defmodule ChinookWeb.Endpoint do
   @session_options [
     store: :cookie,
     key: "_chinook_key",
-    signing_salt: "5FtMnyIC"
+    signing_salt: "6TyLJJs/",
+    same_site: "Lax"
   ]
-
-  socket "/socket", ChinookWeb.UserSocket,
-    websocket: true,
-    longpoll: false
-
-  socket "/live", Phoenix.LiveView.Socket, websocket: [connect_info: [session: @session_options]]
 
   # Serve at "/" the static files from "priv/static" directory.
   #
@@ -24,13 +19,11 @@ defmodule ChinookWeb.Endpoint do
     at: "/",
     from: :chinook,
     gzip: false,
-    only: ~w(css fonts images js favicon.ico robots.txt)
+    only: ChinookWeb.static_paths()
 
   # Code reloading can be explicitly enabled under the
   # :code_reloader configuration of your endpoint.
   if code_reloading? do
-    socket "/phoenix/live_reload/socket", Phoenix.LiveReloader.Socket
-    plug Phoenix.LiveReloader
     plug Phoenix.CodeReloader
     plug Phoenix.Ecto.CheckRepoStatus, otp_app: :chinook
   end

@@ -1,11 +1,11 @@
 # This file is responsible for configuring your application
-# and its dependencies with the aid of the Mix.Config module.
+# and its dependencies with the aid of the Config module.
 #
 # This configuration file is loaded before any dependency and
 # is restricted to this project.
 
 # General application configuration
-use Mix.Config
+import Config
 
 config :chinook,
   ecto_repos: [Chinook.Repo]
@@ -13,10 +13,12 @@ config :chinook,
 # Configures the endpoint
 config :chinook, ChinookWeb.Endpoint,
   url: [host: "localhost"],
-  secret_key_base: "P+BM8Z0wL02F2sLYS+wFyt/1/ZJr4LFtguUzm0Z8DxdurxOtFKFTqW0HyfdcyuH9",
-  render_errors: [view: ChinookWeb.ErrorView, accepts: ~w(html json), layout: false],
+  render_errors: [
+    formats: [json: ChinookWeb.ErrorJSON],
+    layout: false
+  ],
   pubsub_server: Chinook.PubSub,
-  live_view: [signing_salt: "SbOH1xuS"]
+  live_view: [signing_salt: "5rsXl+hT"]
 
 # Configures Elixir's Logger
 config :logger, :console,
@@ -28,4 +30,4 @@ config :phoenix, :json_library, Jason
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
-import_config "#{Mix.env()}.exs"
+import_config "#{config_env()}.exs"

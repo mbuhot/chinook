@@ -13,7 +13,7 @@ defmodule ChinookWeb.GraphQLContext do
   """
   def build_context(conn) do
     with {email, pass} <- Plug.BasicAuth.parse_basic_auth(conn),
-         {:ok, user} <-  Chinook.User.authenticate(email, pass) do
+         {:ok, user} <- Chinook.User.authenticate(email, pass) do
       %{current_user: user}
     else
       :error -> %{}

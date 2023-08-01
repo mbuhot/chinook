@@ -5,9 +5,8 @@ defmodule Chinook.MixProject do
     [
       app: :chinook,
       version: "0.1.0",
-      elixir: "~> 1.7",
+      elixir: "~> 1.14",
       elixirc_paths: elixirc_paths(Mix.env()),
-      compilers: [:phoenix, :gettext] ++ Mix.compilers(),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
       deps: deps()
@@ -33,24 +32,19 @@ defmodule Chinook.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:absinthe_plug, ">= 0.0.0"},
+      {:absinthe_relay, ">= 0.0.0"},
       {:absinthe, ">= 0.0.0"},
-      {:absinthe_plug, "~> 1.5"},
-      {:absinthe_relay, "~> 1.5"},
-      {:dataloader, github: "absinthe-graphql/dataloader", override: true},
-      {:ecto_sql, "~> 3.4"},
-      {:floki, ">= 0.0.0", only: :test},
-      {:gettext, "~> 0.11"},
-      {:jason, "~> 1.0"},
-      {:phoenix_ecto, "~> 4.1"},
-      {:phoenix_html, "~> 2.11"},
-      {:phoenix_live_dashboard, "~> 0.4"},
-      {:phoenix_live_reload, "~> 1.2", only: :dev},
-      {:phoenix_live_view, "~> 0.15"},
-      {:phoenix, "~> 1.5.3"},
-      {:plug_cowboy, "~> 2.0"},
+      {:dataloader, ">= 0.0.0"},
+      {:ecto_sql, "~> 3.10"},
+      {:jason, "~> 1.2"},
+      {:phoenix_ecto, "~> 4.4"},
+      {:phoenix_live_dashboard, "~> 0.8.0"},
+      {:phoenix, "~> 1.7.7"},
+      {:plug_cowboy, "~> 2.5"},
       {:postgrex, ">= 0.0.0"},
-      {:telemetry_metrics, "~> 0.4"},
-      {:telemetry_poller, "~> 0.4"}
+      {:telemetry_metrics, "~> 0.6"},
+      {:telemetry_poller, "~> 1.0"}
     ]
   end
 
@@ -62,7 +56,7 @@ defmodule Chinook.MixProject do
   # See the documentation for `Mix` for more info on aliases.
   defp aliases do
     [
-      setup: ["deps.get", "ecto.setup", "cmd npm install --prefix assets"],
+      setup: ["deps.get", "ecto.setup"],
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"]

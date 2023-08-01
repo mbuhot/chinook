@@ -49,6 +49,7 @@ defmodule Chinook.AlbumTest do
               """,
               album.album_id
             ),
+          on: true,
           left_join: track in Track,
           on: track.track_id == top_tracks.track_id,
           preload: [tracks: {track, :genre}],

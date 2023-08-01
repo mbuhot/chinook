@@ -1,11 +1,12 @@
-use Mix.Config
+import Config
 
 # Configure your database
 config :chinook, Chinook.Repo,
   username: "postgres",
   password: "postgres",
-  database: "chinook_dev",
   hostname: "localhost",
+  database: "chinook_dev",
+  stacktrace: true,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
 
@@ -13,22 +14,17 @@ config :chinook, Chinook.Repo,
 # debugging and code reloading.
 #
 # The watchers configuration can be used to run external
-# watchers to your application. For example, we use it
-# with webpack to recompile .js and .css sources.
+# watchers to your application. For example, we can use it
+# to bundle .js and .css sources.
 config :chinook, ChinookWeb.Endpoint,
-  http: [port: 4000],
-  debug_errors: true,
-  code_reloader: true,
+  # Binding to loopback ipv4 address prevents access from other machines.
+  # Change to `ip: {0, 0, 0, 0}` to allow access from other machines.
+  http: [ip: {127, 0, 0, 1}, port: 4000],
   check_origin: false,
-  watchers: [
-    node: [
-      "node_modules/webpack/bin/webpack.js",
-      "--mode",
-      "development",
-      "--watch-stdin",
-      cd: Path.expand("../assets", __DIR__)
-    ]
-  ]
+  code_reloader: true,
+  debug_errors: true,
+  secret_key_base: "RFAXS34Nz6hQpkTMFH+W4ksDuU5cHiFuNz0PHzfGb+gE4TOXd3ERgMEe02MOtwco",
+  watchers: []
 
 # ## SSL Support
 #
@@ -38,7 +34,6 @@ config :chinook, ChinookWeb.Endpoint,
 #
 #     mix phx.gen.cert
 #
-# Note that this task requires Erlang/OTP 20 or later.
 # Run `mix help phx.gen.cert` for more information.
 #
 # The `http:` config above can be replaced with:
@@ -54,16 +49,8 @@ config :chinook, ChinookWeb.Endpoint,
 # configured to run both http and https servers on
 # different ports.
 
-# Watch static and templates for browser reloading.
-config :chinook, ChinookWeb.Endpoint,
-  live_reload: [
-    patterns: [
-      ~r"priv/static/.*(js|css|png|jpeg|jpg|gif|svg)$",
-      ~r"priv/gettext/.*(po)$",
-      ~r"lib/chinook_web/(live|views)/.*(ex)$",
-      ~r"lib/chinook_web/templates/.*(eex)$"
-    ]
-  ]
+# Enable dev routes for dashboard and mailbox
+config :chinook, dev_routes: true
 
 # Do not include metadata nor timestamps in development logs
 config :logger, :console, format: "[$level] $message\n"
